@@ -11,7 +11,8 @@ public class RegimePoints extends Regime {
     //METHODES
     
     //Méthode pour obtenir cumul de points à la date donnée
-    public float calculCumulPoints(String[][] CumulDroitsTab, DateDepart dateDep) throws Exception {
+    @Override
+    public float calculCumulPointsTrim(String[][] CumulDroitsTab, DateDepart dateDep) throws Exception {
         float result;
         try {
             int anneeDep = dateDep.GetDateDep().getYear();
@@ -76,6 +77,7 @@ public class RegimePoints extends Regime {
     }
 
     //Méthode pour obtenir taux de calcul avec decote si 1 seul taux de decote
+    @Override
     public float calculTaux (DateDepart dateDep) {
         float decote = dateDep.GetTrimManquant() * this.GetTx_decote_1();
         float result = 1 - Math.round(decote * 10000) / (float)10000;
@@ -83,6 +85,7 @@ public class RegimePoints extends Regime {
     }
 
     //Méthode pour obtenir taux surcote si 1 seul taux de surcote
+    @Override
     public float calculSurcote (DateDepart dateDep) {
         float surcote = dateDep.GetTrimSurcote() * this.GetTx_surcote_1();
         float result = Math.round(surcote * 10000) / (float)10000;
@@ -90,6 +93,7 @@ public class RegimePoints extends Regime {
     }
 
     //Méthode pour obtenir taux majoration si 3 enfants ou plus
+    @Override
     public float calculMajoEnfants (Individu individu) {
         int nbEnfants = individu.getNbEnfants();
         float result = 0;
@@ -103,35 +107,12 @@ public class RegimePoints extends Regime {
     @Override
     public float calculAnnuelBrut (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab) throws Exception {
         float ValPt = TrouverValeurPtRegime(this.nom, InstPassPointsRegimesTab, dateDep);
-        float montant = ValPt * calculCumulPoints(CumulDroitsTab, dateDep) * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) * (1 + this.calculMajoEnfants(individu));
+        float montant = ValPt * calculCumulPointsTrim(CumulDroitsTab, dateDep) * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) * (1 + this.calculMajoEnfants(individu));
         float result = Math.round(montant * 100) / (float)100;
         return result;
     }
 
 
-    //GETTER
-    /*public float GetTx_decote_1() {
-        return txDecote1;
-    }
-
-    public float GetTx_decote_2() {
-        return txDecote2;
-    }
-
-    public float GetTx_surcote_1() {
-        return txSurcote1;
-    }
-
-    public float GetTx_surcote_2() {
-        return txSurcote2;
-    }
-
-    public float GetTx_plvt_sociaux() {
-        return txPlvtSociaux;
-    }
-
-    public float GetMajoTroisEnfants() {
-        return majoTroisEnfants;
-    }*/
+    
 
 }

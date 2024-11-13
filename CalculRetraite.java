@@ -83,12 +83,22 @@ public class CalculRetraite {
             for (int j = 0; j < nbReg; j++) {
                 Resultat[k][0] = String.valueOf(DateDepartTab[i].GetDateDep());
                 Resultat[k][1] = RegimesTab[j].nom;
-                Resultat[k][2] = String.valueOf(RegimesTab[j].calculAnnuelBrut(individu, DateDepartTab[i], InstPassPointsRegimesTab, CumulDroitsTab));
+                Resultat[k][2] = String.valueOf(RegimesTab[j].calculCumulPointsTrim(CumulDroitsTab, DateDepartTab[i]));
+                Resultat[k][3] = String.valueOf(RegimesTab[j].calculTaux(DateDepartTab[i]));
+                Resultat[k][4] = String.valueOf(RegimesTab[j].calculSurcote(DateDepartTab[i]));
+                Resultat[k][5] = String.valueOf(RegimesTab[j].calculMajoEnfants(individu));
+                Resultat[k][6] = String.valueOf(RegimesTab[j].calculAnnuelBrut(individu, DateDepartTab[i], InstPassPointsRegimesTab, CumulDroitsTab));
+                Resultat[k][7] = String.valueOf(RegimesTab[j].GetTx_plvt_sociaux());
+                Resultat[k][8] = String.valueOf(RegimesTab[j].calculAnnuelNet(individu, DateDepartTab[i], InstPassPointsRegimesTab, CumulDroitsTab));
                 k++;
             }
         }
-        System.out.println(" verif resultat " + Resultat[0][0] + "  " + Resultat[0][1] + "  " + Resultat[0][2]);
-        System.out.println(" verif resultat " + Resultat[1][0] + "  " + Resultat[1][1] + "  " + Resultat[1][2]);
+
+        //TODO écrire les résultats dans un fichier CSV + programmer les autres régimes dont RG
+
+        
+        System.out.println(" verif resultat " + Resultat[0][0] + "  " + Resultat[0][1] + "  " + Resultat[0][2] + "  " + Resultat[0][3] + "  " + Resultat[0][4] + "  " + Resultat[0][5] + "  " + Resultat[0][6] + "  " + Resultat[0][7] + "  " + Resultat[0][8]);
+        System.out.println(" verif resultat " + Resultat[1][0] + "  " + Resultat[1][1] + "  " + Resultat[1][2] + "  " + Resultat[1][3] + "  " + Resultat[1][4] + "  " + Resultat[1][5] + "  " + Resultat[1][6] + "  " + Resultat[1][7] + "  " + Resultat[1][8]);
 
         //RegimeRCI regTest = new RegimeRCI("rci", InstParamRegimesTab);
         /*System.out.println(" date depart testée " + DateDepartTab[0].GetDateDep());

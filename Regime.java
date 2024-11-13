@@ -1,4 +1,4 @@
-public class Regime {
+abstract  class Regime {
     String nom;
     private final float txDecote1;
     private final float txDecote2;
@@ -34,9 +34,25 @@ public class Regime {
         return result;
     }
 
-    //Méthode pour calcul du montant annuel brut
-    public float calculAnnuelBrut (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab) throws Exception {
-        float result = 0;
+    //Méthode pour retourner le cumul points ou trim pour affichage resultat - A définir dans les classes régimes héritières
+    abstract float calculCumulPointsTrim(String[][] CumulDroitsTab, DateDepart dateDep) throws Exception;  
+
+    //Méthode pour calcul du taux de calcul - A définir dans les classes régimes héritières
+    abstract float calculTaux (DateDepart dateDep) throws Exception;
+
+    //Méthode pour calcul du taux de surcote - A définir dans les classes régimes héritières
+    abstract float calculSurcote (DateDepart dateDep) throws Exception;
+
+    //Méthode pour calcul du taux de majoration pour enfants - A définir dans les classes régimes héritières
+    abstract float calculMajoEnfants (Individu individu);
+
+    //Méthode pour calcul du montant annuel brut - A définir dans les classes régimes héritières
+    abstract  float calculAnnuelBrut (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab) throws Exception;
+
+    //Méthode pour calcul du montant annuel net
+    public float calculAnnuelNet (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab) throws Exception {
+        float montant = this.calculAnnuelBrut(individu, dateDep, InstPassPointsRegimesTab, CumulDroitsTab) * (1 - this.txPlvtSociaux);
+        float result = Math.round(montant);
         return result;
     }
 
