@@ -29,7 +29,7 @@ public class CalculRetraite {
         
         //initialisation des tableaux pour importer les données institutionnelles
         String[][] InstAgeTrimTab = new String[150][6];           
-        String[][] InstParamRegimesTab = new String[50][7];
+        String[][] InstParamRegimesTab = new String[50][8];
         String[][] InstPassPointsRegimesTab = new String[150][50];
         String[][] InstSalaireMinTrimTab = new String[150][2];
         String[][] InstCoeffRevaloTab = new String[150][20];
@@ -48,7 +48,7 @@ public class CalculRetraite {
         Individu individu = new Individu(IndTab, InstAgeTrimTab);
         
         //création d'un tableau avec le nom des régimes déjà paramétrés et programmés MAJ dès qu'on programme un nouveau régime + MAJ de CreateRegimesTab dans Tools
-        String [] InitialRegimesTab = {"agirc_arrco", "rci"};
+        //String [] InitialRegimesTab = {"agirc_arrco", "rci"}; //TEST à priori inutile
         
 
 
@@ -78,26 +78,33 @@ public class CalculRetraite {
         System.out.println(" verif nb reg " + nbReg);
             //initialisation du tableau des regimes à calculer
 
-        Regime[] RegimesTab = Tools.CreateRegimesTab(nbReg, InitialRegimesTab, CumulDroitsTab, InstParamRegimesTab );
+        Regime[] RegimesTab = Tools.CreateRegimesTab(nbReg, CumulDroitsTab, InstParamRegimesTab );
 
         //pour chaque date de DateDepartTab : parcourir le tableau des régimes pour calcul des montants/nbPts/taux/surcote pour chaque regime
         String [][] Resultat = new String[nbReg * nbDate][15];
         int k = 0; //indice ligne
         for (int i = 0; i < nbDate; i++) {
-            //TODO rajouter un if valeur nulle break
             for (int j = 0; j < nbReg; j++) {
-                Resultat[k][0] = String.valueOf(DateDepartTab[i].GetDateDep());
+                //on décale la date de depart au 1er jour trim civil suivant si le régime impose un départ au 1er jour du trimestre civil
+                DateDepart DateDepartCalcul;
+                if (RegimesTab[j].GetDepTrimCivil() == 0) {
+                    DateDepartCalcul = DateDepartTab[i];
+                }
+                else {
+                    DateDepartCalcul = Tools.DecalerTrimCivil(DateDepartTab[i], individu, AnnualDataTab);
+                }
+                Resultat[k][0] = String.valueOf(DateDepartCalcul.GetDateDep()); 
                 Resultat[k][1] = RegimesTab[j].nom;
-                Resultat[k][2] = String.valueOf(RegimesTab[j].calculCumulPointsTrim(individu, CumulDroitsTab, DateDepartTab[i]));
-                Resultat[k][3] = String.valueOf(RegimesTab[j].calculTaux(DateDepartTab[i]));
-                Resultat[k][4] = String.valueOf(RegimesTab[j].calculSurcote(DateDepartTab[i]));
+                Resultat[k][2] = String.valueOf(RegimesTab[j].calculCumulPointsTrim(individu, CumulDroitsTab, DateDepartCalcul));
+                Resultat[k][3] = String.valueOf(RegimesTab[j].calculTaux(DateDepartCalcul));
+                Resultat[k][4] = String.valueOf(RegimesTab[j].calculSurcote(DateDepartCalcul));
                 Resultat[k][5] = String.valueOf(RegimesTab[j].calculSam(DateDepartTab[i], InstPassPointsRegimesTab, AnnualDataTab, InstCoeffRevaloTab));
-                Resultat[k][6] = String.valueOf(RegimesTab[j].TrouverValeurPtRegime(InstPassPointsRegimesTab, DateDepartTab[i]));
+                Resultat[k][6] = String.valueOf(RegimesTab[j].TrouverValeurPtRegime(InstPassPointsRegimesTab, DateDepartCalcul));
                 Resultat[k][7] = String.valueOf(RegimesTab[j].calculMajoEnfants(individu));
-                Resultat[k][8] = String.valueOf(RegimesTab[j].calculAnnuelBrut(individu, DateDepartTab[i], InstPassPointsRegimesTab, CumulDroitsTab, AnnualDataTab, InstCoeffRevaloTab));
+                Resultat[k][8] = String.valueOf(RegimesTab[j].calculAnnuelBrut(individu, DateDepartCalcul, InstPassPointsRegimesTab, CumulDroitsTab, AnnualDataTab, InstCoeffRevaloTab));
                 Resultat[k][9] = String.valueOf(RegimesTab[j].GetTx_plvt_sociaux());
-                Resultat[k][10] = String.valueOf(RegimesTab[j].calculAnnuelNet(individu, DateDepartTab[i], InstPassPointsRegimesTab, CumulDroitsTab, AnnualDataTab, InstCoeffRevaloTab));
-                System.out.println("date " + DateDepartTab[i].GetDateDep() + " | " + RegimesTab[j].nom + " | retour sam " + Resultat[k][5]);
+                Resultat[k][10] = String.valueOf(RegimesTab[j].calculAnnuelNet(individu, DateDepartCalcul, InstPassPointsRegimesTab, CumulDroitsTab, AnnualDataTab, InstCoeffRevaloTab));
+                // TEST System.out.println("date " + DateDepartTab[i].GetDateDep() + " | " + RegimesTab[j].nom + " | retour sam " + Resultat[k][5]);
                 k++;
             }
         }

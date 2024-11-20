@@ -144,7 +144,7 @@ public class RegimeRG extends Regime {
                     salaireRevalo = salaire * coeffRevalo;
                 }
                 else {
-                    salaireRevalo = Math.round(Math.min(pass, salaire) * coeffRevalo * 100) / (float)100;  //TODO arrondir résultat
+                    salaireRevalo = Math.round(Math.min(pass, salaire) * coeffRevalo * 100) / (float)100;  
                 }
             }
             //création d'une instance de la classe Salaire

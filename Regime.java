@@ -6,6 +6,7 @@ abstract  class Regime {
     private final float txSurcote2;
     private final float txPlvtSociaux;
     private final float majoTroisEnfants;
+    private final float depTrimCivil;
 
     //CONSTRUCTEUR
     public Regime(String nom, String [][] InstParamRegimesTab) throws Exception {
@@ -16,6 +17,7 @@ abstract  class Regime {
         this.txSurcote2 = TrouverDonneeRegime(this.nom, InstParamRegimesTab, "tx_surcote_2");
         this.txPlvtSociaux = TrouverDonneeRegime(this.nom, InstParamRegimesTab, "tx_plvt_sociaux");
         this.majoTroisEnfants = TrouverDonneeRegime(this.nom, InstParamRegimesTab, "majo_trois_enfants");
+        this.depTrimCivil = TrouverDonneeRegime(this.nom, InstParamRegimesTab, "depart_trim_civil");
         
     }
     
@@ -85,5 +87,9 @@ abstract  class Regime {
 
     public float GetMajoTroisEnfants() {
         return majoTroisEnfants;
+    }
+
+    public float GetDepTrimCivil() {
+        return depTrimCivil;
     }
 }

@@ -20,7 +20,7 @@ public class DateDepart {
         this.ageDep = Tools.DateDiffDNN(individu.getDateNaissance(), dateDep);
         this.cumulTrim = CalculCumulTrim(dateDep, trimRachat, individu, AnnualDataTab);
         this.trimManquant = CalculTrimManquant(individu);
-        this.trimSurcote = CalculTrimSurcote(individu);
+        this.trimSurcote = CalculTrimSurcote(dateDep, individu, AnnualDataTab);
     }
 
     
@@ -77,24 +77,44 @@ public class DateDepart {
         return result;
     }
 
-    private int CalculTrimSurcote(Individu individu) {
+    private int CalculTrimSurcote(LocalDate dateDep, Individu individu, String[][] AnnualDataTab) {
         int nbTrimSurcote;
         //si la date de départ est avant l'age legal (cas carrière longue) -> pas de surcote
         if(this.dateDep.compareTo(individu.getDateAgeLegal()) <= 0){
             nbTrimSurcote = 0;
         }
         else {
-            int nbTrimSurcoteMax = Tools.DiffDateTrimCivil(individu.getDateAgeLegal(), this.dateDep);
+            //calcul nb trim surcote max en fonction des trimestres cotisés entre age légal et date depart
+            int nbTrimSurcoteMax = 0;
+            int anneeAgeLegal = individu.getDateAgeLegal().getYear();
+            int moisAgeLegal = individu.getDateAgeLegal().getMonthValue();
+            int anneeDep = dateDep.getYear();
+            int moisDep = dateDep.getMonthValue();
+            for (int i = 1; i < AnnualDataTab.length; i++) {
+                if (AnnualDataTab[i][0] == null) break;
+                if (Integer.parseInt(AnnualDataTab[i][0]) == anneeAgeLegal) {
+                    nbTrimSurcoteMax = nbTrimSurcoteMax + Integer.parseInt(AnnualDataTab[i][2]) / 12 * (12 - moisAgeLegal + 1);
+                }
+                else {
+                    if (Integer.parseInt(AnnualDataTab[i][0]) == anneeDep) {
+                        nbTrimSurcoteMax = nbTrimSurcoteMax + Integer.parseInt(AnnualDataTab[i][2]) / 12 * moisDep;
+                    }
+                    else {
+                        if (Integer.parseInt(AnnualDataTab[i][0]) > anneeAgeLegal && Integer.parseInt(AnnualDataTab[i][0]) < anneeDep) {
+                            nbTrimSurcoteMax = nbTrimSurcoteMax + Integer.parseInt(AnnualDataTab[i][2]);
+                        }
+                    }
+                }
+
+            }
             nbTrimSurcote = Math.min(nbTrimSurcoteMax, Math.max(0, this.cumulTrim - individu.getTrimRequis()));
         }
         return nbTrimSurcote;
     }
 
     public int trimSurcoteParent() {
-        return 12;
+        return 12; //TODO calcul surcote parentale
     }
-
-    //TODO pour régimes libéraux avec départ au 1er jour trim civil ou voir si on calcule le décalage directement dans les régimes concernés
 
     //GETTER
     public LocalDate GetDateDep() {

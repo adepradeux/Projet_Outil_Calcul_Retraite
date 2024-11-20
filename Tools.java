@@ -163,7 +163,7 @@ public class Tools {
     }
 
     //méthode pour créer le tableau des régimes à calculer MAJ à chaque nouveau régime programmé
-    public static Regime[] CreateRegimesTab (int length, String[] InitialRegimesTab, String[][] CumulDroitsTab, String[][] InstParamRegimesTab ) throws Exception {
+    public static Regime[] CreateRegimesTab (int length, String[][] CumulDroitsTab, String[][] InstParamRegimesTab ) throws Exception {
         Regime[] RegimesTab = new Regime[length];
         int j = 0;
         for (int i = 0; i < RegimesTab.length; i++) {
@@ -177,6 +177,9 @@ public class Tools {
             else if (nomReg.equals("regime_general")) {
                 RegimesTab[j] = new RegimeRG(nomReg, InstParamRegimesTab);
             }
+            else if (nomReg.equals("cnavpl")) {
+                RegimesTab[j] = new RegimeCnavpl(nomReg, InstParamRegimesTab);
+            }
             else {
                 System.out.println("Nom de régime invalide!");
             }
@@ -186,6 +189,27 @@ public class Tools {
         return RegimesTab;
     }
 
+    //méthode pour décaler une date de départ au 1er jour du trim civil suivant
+    public static DateDepart DecalerTrimCivil (DateDepart dateDepInit, Individu individu, String[][] AnnualDataTab ) throws Exception {
+        int moisDep = dateDepInit.GetDateDep().getMonthValue();
+        int anneeDep = dateDepInit.GetDateDep().getYear();
+        DateDepart dateDepNew = null;
+        if ((moisDep == 1) || (moisDep == 4) || (moisDep == 7) || (moisDep == 10)) {
+            dateDepNew = dateDepInit;
+        }
+        else {
+            if ((moisDep == 2) || (moisDep == 5) || (moisDep == 8) || (moisDep == 11)) {
+                LocalDate dateNew = dateDepInit.GetDateDep().plusMonths(2);
+                dateDepNew = new DateDepart(dateNew, dateDepInit.GetTrimRachat(), dateDepInit.GetRetraiteProg(), individu, AnnualDataTab);
+            }
+            else {
+                LocalDate dateNew = dateDepInit.GetDateDep().plusMonths(1);
+                dateDepNew = new DateDepart(dateNew, dateDepInit.GetTrimRachat(), dateDepInit.GetRetraiteProg(), individu, AnnualDataTab);
+            }
+        }
+       
+        return dateDepNew;
+    }
     
       
 
