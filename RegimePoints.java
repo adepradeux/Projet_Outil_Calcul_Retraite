@@ -12,13 +12,14 @@ public class RegimePoints extends Regime {
     
     //Méthode pour obtenir cumul de points à la date donnée
     @Override
-    public float calculCumulPointsTrim(String[][] CumulDroitsTab, DateDepart dateDep) throws Exception {
+    public float calculCumulPointsTrim(Individu individu, String[][] CumulDroitsTab, DateDepart dateDep) throws Exception {
         float result;
         try {
+           
             int anneeDep = dateDep.GetDateDep().getYear();
             int moisDep = dateDep.GetDateDep().getMonthValue();
             //on cherche l'indice de la colonne correspondant au regime  
-            
+              
             int indCol = Tools.TrouverIndiceColonne(CumulDroitsTab, this.nom);
             
             float cumulPointsInit = Float.parseFloat(CumulDroitsTab[2][indCol]);
@@ -43,7 +44,8 @@ public class RegimePoints extends Regime {
 
     
     //Méthode pour obtenir la valeur de point du régime selon la date de départ donnée
-    public float TrouverValeurPtRegime (String nomregime, String[][] InstPassPointsRegimesTab, DateDepart dateDep) throws Exception {
+    @Override
+    public float TrouverValeurPtRegime (String[][] InstPassPointsRegimesTab, DateDepart dateDep) throws Exception {
         //si annee depart sup à la dernière ligne du tab -> on utilise la valeur de la dernière ligne
         int longTab = InstPassPointsRegimesTab.length;
         
@@ -64,13 +66,13 @@ public class RegimePoints extends Regime {
             anneeValeur = String.valueOf(anneeDep);
         }
         String donneeATrouver = "VP_";
-        donneeATrouver = donneeATrouver.concat(nomregime);
+        donneeATrouver = donneeATrouver.concat(this.nom);
         float result = 0;
         try {
             int indLgn = Tools.TrouverIndiceLigne(InstPassPointsRegimesTab, anneeValeur);
             int indCol = Tools.TrouverIndiceColonne(InstPassPointsRegimesTab, donneeATrouver);
             result = Float.parseFloat(InstPassPointsRegimesTab[indLgn][indCol]);
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             System.out.println("donnee ponits régime incorrecte: " + e.getMessage());
         }
         return result;
@@ -105,11 +107,16 @@ public class RegimePoints extends Regime {
 
     //Méthode pour calcul du montant annuel brut
     @Override
-    public float calculAnnuelBrut (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab) throws Exception {
-        float ValPt = TrouverValeurPtRegime(this.nom, InstPassPointsRegimesTab, dateDep);
-        float montant = ValPt * calculCumulPointsTrim(CumulDroitsTab, dateDep) * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) * (1 + this.calculMajoEnfants(individu));
+    public float calculAnnuelBrut (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab, String[][] AnnualDataTab, String[][] InstCoeffRevaloTab) throws Exception {
+        float ValPt = TrouverValeurPtRegime(InstPassPointsRegimesTab, dateDep);
+        float montant = ValPt * calculCumulPointsTrim(individu, CumulDroitsTab, dateDep) * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) * (1 + this.calculMajoEnfants(individu));
         float result = Math.round(montant * 100) / (float)100;
         return result;
+    }
+
+    @Override
+    public float calculSam (DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] AnnualDataTab, String[][] InstCoeffRevaloTab) throws Exception {
+        return 0;
     }
 
 

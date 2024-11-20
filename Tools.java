@@ -139,20 +139,54 @@ public class Tools {
         return indCol;    
     }
 
+    //methode pour trouver l'indice de la colonne du tableau de coeff revalo correspondant à la période du la date de départ
+    public static int TrouverIndiceColonneRevalo(String[][] tab, LocalDate dateDep){
+        if (dateDep.compareTo(LocalDate.of(2021, 1, 1)) <= 0) {
+            System.out.println("calcul coeff revalo incorrect pour les date d'effet avant le 01/01/2021");
+            return 1;
+        }
+        else {
+            int indCol = 0; 
+            for (int i = 2; i < tab[0].length; i++) {
+                if (tab[0][i] == null) break;
+                
+                if (dateDep.compareTo(dateFromString(tab[0][i])) <= 0) {
+                    return i - 1;
+                }
+                else {
+                    indCol = i;
+                }
+            }
+
+            return indCol;    
+        }
+    }
+
     //méthode pour créer le tableau des régimes à calculer MAJ à chaque nouveau régime programmé
-    public static Regime[] CreateRegimesTab (Regime[] RegimesTab, String[] InitialRegimesTab, String[][] CumulDroitsTab, String[][] InstParamRegimesTab ) throws Exception {
+    public static Regime[] CreateRegimesTab (int length, String[] InitialRegimesTab, String[][] CumulDroitsTab, String[][] InstParamRegimesTab ) throws Exception {
+        Regime[] RegimesTab = new Regime[length];
         int j = 0;
         for (int i = 0; i < RegimesTab.length; i++) {
             String nomReg = CumulDroitsTab[0][i + 1];       
             if (nomReg.equals("rci")) {
                 RegimesTab[j] = new RegimeRCI(nomReg, InstParamRegimesTab);
             }
-            if (nomReg.equals("agirc_arrco")) {
+            else if (nomReg.equals("agirc_arrco")) {
                 RegimesTab[j] = new RegimeAgircArrco(nomReg, InstParamRegimesTab);
             }
+            else if (nomReg.equals("regime_general")) {
+                RegimesTab[j] = new RegimeRG(nomReg, InstParamRegimesTab);
+            }
+            else {
+                System.out.println("Nom de régime invalide!");
+            }
+
             j++;
         }
         return RegimesTab;
     }
+
+    
+      
 
 }

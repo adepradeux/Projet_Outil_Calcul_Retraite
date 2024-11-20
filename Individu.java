@@ -52,7 +52,7 @@ public class Individu {
             }
             }
             // on récupère le nombre de trim requis pour le taux plein
-            int trimestresRequis = Integer.parseInt(InstAgeTrimTab[k][3]);    // TODO voir si on rajoute un try catch sur tous les Integer.valueOf qui ne marchera pas si lignes vides
+            int trimestresRequis = Integer.parseInt(InstAgeTrimTab[k][3]);    
             //cas particulier de la génération 1961 selon le mois de naissance
             if (anneeDDN == 1961) {
                 if (moisDDN < 9) {

@@ -1,7 +1,15 @@
+import java.awt.Frame;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,5 +60,39 @@ public class CsvFileHelper {
         }
     return tab;
    } 
+
+   //méthode pour écrire dans un csv
+   public static void writeData(String FILE_NAME, String[] columnHeader, String [][] tab) {
+       try {
+			// Création d'un fileWriter pour écrire dans un fichier
+			FileOutputStream file = new FileOutputStream(FILE_NAME);
+            OutputStreamWriter fileWriter = new OutputStreamWriter(file, StandardCharsets.UTF_8);
+            //FileWriter fileWriter = new FileWriter(FILE_NAME, false);
+
+			// Création d'un bufferedWriter qui utilise le fileWriter
+			BufferedWriter writer = new BufferedWriter(fileWriter);
+
+           // ajout des en-tetes de colonnes
+           for (String columnHeader1 : columnHeader) {
+               writer.write(columnHeader1 + ";");
+           }
+            writer.newLine();
+
+            for (int i = 0; i < tab.length; i++) {
+                for (int j = 0; j < tab[i].length; j++) {
+                    writer.write(tab[i][j] + ";");
+                }
+                writer.newLine();
+            }
+
+            
+
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+       
+   }
+   
 
 }

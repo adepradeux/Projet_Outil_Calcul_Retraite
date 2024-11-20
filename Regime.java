@@ -35,7 +35,7 @@ abstract  class Regime {
     }
 
     //Méthode pour retourner le cumul points ou trim pour affichage resultat - A définir dans les classes régimes héritières
-    abstract float calculCumulPointsTrim(String[][] CumulDroitsTab, DateDepart dateDep) throws Exception;  
+    abstract float calculCumulPointsTrim(Individu individu, String[][] CumulDroitsTab, DateDepart dateDep) throws Exception;  
 
     //Méthode pour calcul du taux de calcul - A définir dans les classes régimes héritières
     abstract float calculTaux (DateDepart dateDep) throws Exception;
@@ -43,15 +43,21 @@ abstract  class Regime {
     //Méthode pour calcul du taux de surcote - A définir dans les classes régimes héritières
     abstract float calculSurcote (DateDepart dateDep) throws Exception;
 
+    //Méthode pour calcul SAM - A définir dans la classe Régime Général
+    abstract  float calculSam (DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] AnnualDataTab, String[][] InstCoeffRevaloTab) throws Exception;
+
+    //Méthode pour retourner la valeur du point - overwrite dans regimePoints
+    abstract float TrouverValeurPtRegime (String[][] InstPassPointsRegimesTab, DateDepart dateDep) throws Exception; 
+
     //Méthode pour calcul du taux de majoration pour enfants - A définir dans les classes régimes héritières
     abstract float calculMajoEnfants (Individu individu);
 
     //Méthode pour calcul du montant annuel brut - A définir dans les classes régimes héritières
-    abstract  float calculAnnuelBrut (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab) throws Exception;
+    abstract  float calculAnnuelBrut (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab, String[][] AnnualDataTab, String[][] InstCoeffRevaloTab) throws Exception;
 
     //Méthode pour calcul du montant annuel net
-    public float calculAnnuelNet (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab) throws Exception {
-        float montant = this.calculAnnuelBrut(individu, dateDep, InstPassPointsRegimesTab, CumulDroitsTab) * (1 - this.txPlvtSociaux);
+    public float calculAnnuelNet (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab, String[][] AnnualDataTab, String[][] InstCoeffRevaloTab) throws Exception {
+        float montant = this.calculAnnuelBrut(individu, dateDep, InstPassPointsRegimesTab, CumulDroitsTab, AnnualDataTab, InstCoeffRevaloTab) * (1 - this.txPlvtSociaux);
         float result = Math.round(montant);
         return result;
     }

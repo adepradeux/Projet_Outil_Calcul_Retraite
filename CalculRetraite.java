@@ -18,19 +18,21 @@ public class CalculRetraite {
         String FILE_INST_PARAM_REGIMES = "/Input_data_institutionnelles/Input_parametres_regimes.csv";
         String FILE_INST_PASS_POINTS_REGIMES = "/Input_data_institutionnelles/Input_pass_points_regimes.csv";
         String FILE_INST_SALAIRE_MIN_TRIM = "/Input_data_institutionnelles/Input_salaire_min_trim.csv";
+        String FILE_INST_COEFF_REVALO = "/Input_data_institutionnelles/Input_coeff_revalo.csv";
 
         
         //initialisation des tableaux pour importer les données d'entrée client
         String[][] IndTab = new String[10][2];           //TODO voir si on peut faire autrement que prévoir la taille du tableau
         String[][] AnnualDataTab = new String[300][7];
-        String[][] CumulDroitsTab = new String[300][20];
+        String[][] CumulDroitsTab = new String[300][20]; 
         String[][] DateRetraiteTab = new String[20][5];
-
+        
         //initialisation des tableaux pour importer les données institutionnelles
         String[][] InstAgeTrimTab = new String[150][6];           
         String[][] InstParamRegimesTab = new String[50][7];
         String[][] InstPassPointsRegimesTab = new String[150][50];
         String[][] InstSalaireMinTrimTab = new String[150][2];
+        String[][] InstCoeffRevaloTab = new String[150][20];
 
         //imporation des données d'entrée
         IndTab = CsvFileHelper.getData(FILE_IND, IndTab);
@@ -41,6 +43,7 @@ public class CalculRetraite {
         CsvFileHelper.getData(FILE_INST_PARAM_REGIMES, InstParamRegimesTab);
         CsvFileHelper.getData(FILE_INST_PASS_POINTS_REGIMES, InstPassPointsRegimesTab);
         CsvFileHelper.getData(FILE_INST_SALAIRE_MIN_TRIM, InstSalaireMinTrimTab);
+        CsvFileHelper.getData(FILE_INST_COEFF_REVALO, InstCoeffRevaloTab);
 
         Individu individu = new Individu(IndTab, InstAgeTrimTab);
         
@@ -52,8 +55,9 @@ public class CalculRetraite {
         //on crée un tableau d'objet de classe DateDepart avec toutes les dates de retraite à calculer à partir de dateRetraiteTab
         int nbDate = 0;
         for (int i = 1; i < DateRetraiteTab.length; i++) {
+            if (DateRetraiteTab[i][0] == null) break;
             if (DateRetraiteTab[i][0] != null) {                
-                nbDate ++;
+                nbDate ++; 
             } 
         }
         DateDepart[] DateDepartTab = new DateDepart[nbDate];
@@ -73,38 +77,37 @@ public class CalculRetraite {
         }
         System.out.println(" verif nb reg " + nbReg);
             //initialisation du tableau des regimes à calculer
-        Regime[] RegimesTab = new Regime[nbReg];
-        Tools.CreateRegimesTab(RegimesTab, InitialRegimesTab, CumulDroitsTab, InstParamRegimesTab );
+
+        Regime[] RegimesTab = Tools.CreateRegimesTab(nbReg, InitialRegimesTab, CumulDroitsTab, InstParamRegimesTab );
 
         //pour chaque date de DateDepartTab : parcourir le tableau des régimes pour calcul des montants/nbPts/taux/surcote pour chaque regime
-        String [][] Resultat = new String[nbReg * nbDate][10];
+        String [][] Resultat = new String[nbReg * nbDate][15];
         int k = 0; //indice ligne
         for (int i = 0; i < nbDate; i++) {
+            //TODO rajouter un if valeur nulle break
             for (int j = 0; j < nbReg; j++) {
                 Resultat[k][0] = String.valueOf(DateDepartTab[i].GetDateDep());
                 Resultat[k][1] = RegimesTab[j].nom;
-                Resultat[k][2] = String.valueOf(RegimesTab[j].calculCumulPointsTrim(CumulDroitsTab, DateDepartTab[i]));
+                Resultat[k][2] = String.valueOf(RegimesTab[j].calculCumulPointsTrim(individu, CumulDroitsTab, DateDepartTab[i]));
                 Resultat[k][3] = String.valueOf(RegimesTab[j].calculTaux(DateDepartTab[i]));
                 Resultat[k][4] = String.valueOf(RegimesTab[j].calculSurcote(DateDepartTab[i]));
-                Resultat[k][5] = String.valueOf(RegimesTab[j].calculMajoEnfants(individu));
-                Resultat[k][6] = String.valueOf(RegimesTab[j].calculAnnuelBrut(individu, DateDepartTab[i], InstPassPointsRegimesTab, CumulDroitsTab));
-                Resultat[k][7] = String.valueOf(RegimesTab[j].GetTx_plvt_sociaux());
-                Resultat[k][8] = String.valueOf(RegimesTab[j].calculAnnuelNet(individu, DateDepartTab[i], InstPassPointsRegimesTab, CumulDroitsTab));
+                Resultat[k][5] = String.valueOf(RegimesTab[j].calculSam(DateDepartTab[i], InstPassPointsRegimesTab, AnnualDataTab, InstCoeffRevaloTab));
+                Resultat[k][6] = String.valueOf(RegimesTab[j].TrouverValeurPtRegime(InstPassPointsRegimesTab, DateDepartTab[i]));
+                Resultat[k][7] = String.valueOf(RegimesTab[j].calculMajoEnfants(individu));
+                Resultat[k][8] = String.valueOf(RegimesTab[j].calculAnnuelBrut(individu, DateDepartTab[i], InstPassPointsRegimesTab, CumulDroitsTab, AnnualDataTab, InstCoeffRevaloTab));
+                Resultat[k][9] = String.valueOf(RegimesTab[j].GetTx_plvt_sociaux());
+                Resultat[k][10] = String.valueOf(RegimesTab[j].calculAnnuelNet(individu, DateDepartTab[i], InstPassPointsRegimesTab, CumulDroitsTab, AnnualDataTab, InstCoeffRevaloTab));
+                System.out.println("date " + DateDepartTab[i].GetDateDep() + " | " + RegimesTab[j].nom + " | retour sam " + Resultat[k][5]);
                 k++;
             }
         }
-
-        //TODO écrire les résultats dans un fichier CSV + programmer les autres régimes dont RG
-
         
-        System.out.println(" verif resultat " + Resultat[0][0] + "  " + Resultat[0][1] + "  " + Resultat[0][2] + "  " + Resultat[0][3] + "  " + Resultat[0][4] + "  " + Resultat[0][5] + "  " + Resultat[0][6] + "  " + Resultat[0][7] + "  " + Resultat[0][8]);
-        System.out.println(" verif resultat " + Resultat[1][0] + "  " + Resultat[1][1] + "  " + Resultat[1][2] + "  " + Resultat[1][3] + "  " + Resultat[1][4] + "  " + Resultat[1][5] + "  " + Resultat[1][6] + "  " + Resultat[1][7] + "  " + Resultat[1][8]);
-
-        //RegimeRCI regTest = new RegimeRCI("rci", InstParamRegimesTab);
-        /*System.out.println(" date depart testée " + DateDepartTab[0].GetDateDep());
-        System.out.println(" verif cumul trim " + DateDepartTab[0].GetCumulTrim());
-        System.out.println(" nb trim manquant " + DateDepartTab[0].GetTrimManquant());
-        System.out.println(" annuel brut " + RegimesTab[2].calculAnnuelBrut(individu, DateDepartTab[0], InstPassPointsRegimesTab, CumulDroitsTab));*/
+        //tableau avec les en-tetes de colonne du tableau de résultat
+        String[] headTabResult = {"Date Départ", "Régime", "Trim/Points", "Taux", "Surcote", "SAM", "Valeur Point", "Majoration familiale",  "Annuel Brut", "Prélèvements", "Annuel Net"}; 
+        CsvFileHelper.writeData("C:\\Users\\audre\\Desktop\\Retraite\\Projet_Outil_Calcul_Retraite\\Output\\resultatsTest.csv", headTabResult, Resultat);
+        
+        //TODO sortir un fichier CSV avec les salaires revalorisés 
+        //TODO sortir le nom d'affichage du régime dans le fichier resultat et non le nom du régime
         
        
     }
