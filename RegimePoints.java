@@ -2,9 +2,12 @@
 
 public class RegimePoints extends Regime {
 
+    private final float seuilPointCapUnique;
+    
     //CONSTRUCTEUR
-    public RegimePoints(String nom, String [][] InstParamRegimesTab) throws Exception {
-        super(nom, InstParamRegimesTab);
+    public RegimePoints(String nom, String nomOutput, String [][] InstParamRegimesTab) throws Exception {
+        super(nom, nomOutput, InstParamRegimesTab);
+        seuilPointCapUnique = Tools.TrouverDonneeRegime(this.GetNom(), InstParamRegimesTab, "seuil_point_cap_unique");
     }
 
     
@@ -20,7 +23,7 @@ public class RegimePoints extends Regime {
             int moisDep = dateDep.GetDateDep().getMonthValue();
             //on cherche l'indice de la colonne correspondant au regime  
               
-            int indCol = Tools.TrouverIndiceColonne(CumulDroitsTab, this.nom);
+            int indCol = Tools.TrouverIndiceColonne(CumulDroitsTab, this.GetNom());
             
             float cumulPointsInit = Float.parseFloat(CumulDroitsTab[2][indCol]);
             int anneeCumul = Tools.dateFromString(CumulDroitsTab[4][indCol]).getYear();
@@ -46,27 +49,9 @@ public class RegimePoints extends Regime {
     //Méthode pour obtenir la valeur de point du régime selon la date de départ donnée
     @Override
     public float TrouverValeurPtRegime (String[][] InstPassPointsRegimesTab, DateDepart dateDep) throws Exception {
-        //si annee depart sup à la dernière ligne du tab -> on utilise la valeur de la dernière ligne
-        int longTab = InstPassPointsRegimesTab.length;
-        
-        //trouver l'indice de la dernière valeur non nulle du tableau
-        int indLgnFin = 0;    
-        for (int i =0; i < longTab; i++) {
-            if (InstPassPointsRegimesTab[i][0] == null) break;
-            indLgnFin = i;
-        }
-        
-        int anneeFin = Integer.parseInt(InstPassPointsRegimesTab[indLgnFin][0]);
-        int anneeDep = dateDep.GetDateDep().getYear();
-        String anneeValeur; //annee de la valeur pt à chercher dans le tableau
-        if (anneeDep >= anneeFin) {
-            anneeValeur = String.valueOf(anneeFin);
-        }
-        else {
-            anneeValeur = String.valueOf(anneeDep);
-        }
+        String anneeValeur = TrouverAnneeValeurRegime(InstPassPointsRegimesTab, dateDep);
         String donneeATrouver = "VP_";
-        donneeATrouver = donneeATrouver.concat(this.nom);
+        donneeATrouver = donneeATrouver.concat(this.GetNom());
         float result = 0;
         try {
             int indLgn = Tools.TrouverIndiceLigne(InstPassPointsRegimesTab, anneeValeur);
@@ -76,6 +61,43 @@ public class RegimePoints extends Regime {
             System.out.println("donnee ponits régime incorrecte: " + e.getMessage());
         }
         return result;
+    }
+
+    public float TrouverSalaireRefRegime (String[][] InstPassPointsRegimesTab, DateDepart dateDep) throws Exception {
+        String anneeValeur = TrouverAnneeValeurRegime(InstPassPointsRegimesTab, dateDep);
+        String donneeATrouver = "SR_";
+        donneeATrouver = donneeATrouver.concat(this.GetNom());
+        float result = 0;
+        try {
+            int indLgn = Tools.TrouverIndiceLigne(InstPassPointsRegimesTab, anneeValeur);
+            int indCol = Tools.TrouverIndiceColonne(InstPassPointsRegimesTab, donneeATrouver);
+            result = Float.parseFloat(InstPassPointsRegimesTab[indLgn][indCol]);
+        } catch (Exception e) {
+            System.out.println("donnee ponits régime incorrecte: " + e.getMessage());
+        }
+        return result;
+    }
+
+    //methode pour retourner l'année (String) à prendre en compte dans le tableau InstPassPointsRegimesTab
+    public String TrouverAnneeValeurRegime (String[][] InstPassPointsRegimesTab, DateDepart dateDep) throws Exception {
+        int longTab = InstPassPointsRegimesTab.length;
+        //trouver l'indice de la dernière valeur non nulle du tableau
+        int indLgnFin = 0;    
+        for (int i =0; i < longTab; i++) {
+            if (InstPassPointsRegimesTab[i][0] == null) break;
+            indLgnFin = i;
+        }
+        int anneeFin = Integer.parseInt(InstPassPointsRegimesTab[indLgnFin][0]);
+        int anneeDep = dateDep.GetDateDep().getYear();
+        String anneeValeur; //annee de la valeur pt à chercher dans le tableau
+        //si annee depart sup à la dernière ligne du tab -> on utilise la valeur de la dernière ligne
+        if (anneeDep >= anneeFin) {
+            anneeValeur = String.valueOf(anneeFin);
+        }
+        else {
+            anneeValeur = String.valueOf(anneeDep);
+        }
+        return anneeValeur;
     }
 
     //Méthode pour obtenir taux de calcul avec decote si 1 seul taux de decote
@@ -107,16 +129,37 @@ public class RegimePoints extends Regime {
 
     //Méthode pour calcul du montant annuel brut
     @Override
-    public float calculAnnuelBrut (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab, String[][] AnnualDataTab, String[][] InstCoeffRevaloTab) throws Exception {
+    public int calculAnnuelBrut (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab, String[][] AnnualDataTab, String[][] InstCoeffRevaloTab) throws Exception {
         float ValPt = TrouverValeurPtRegime(InstPassPointsRegimesTab, dateDep);
         float montant = ValPt * calculCumulPointsTrim(individu, CumulDroitsTab, dateDep) * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) * (1 + this.calculMajoEnfants(individu));
-        float result = Math.round(montant * 100) / (float)100;
+        int result = Math.round(montant);
         return result;
     }
 
     @Override
     public float calculSam (DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] AnnualDataTab, String[][] InstCoeffRevaloTab) throws Exception {
         return 0;
+    }
+
+     //Méthode déterminer le versement se fait en capital unique (si nb points ou montant inf à un certain seuil)
+    @Override
+    public Boolean estVersementUnique (Individu individu, String[][] CumulDroitsTab, DateDepart dateDep) {
+        Boolean result = false;
+        float cumulPoints = 0;
+        try {
+            cumulPoints = calculCumulPointsTrim(individu, CumulDroitsTab, dateDep);
+        } catch (Exception ex) {
+        }
+        if (cumulPoints < this.seuilPointCapUnique) {
+            result = true;
+        }
+        return result;
+    }
+
+    //GETTER
+
+    public float GetSeuilPointCapUnique() {
+        return seuilPointCapUnique;
     }
 
 

@@ -2,8 +2,8 @@ import java.util.Arrays;
 
 public class RegimeRG extends Regime {
     //CONSTRUCTEUR
-    public RegimeRG(String nom, String [][] InstParamRegimesTab) throws Exception {
-        super(nom, InstParamRegimesTab);
+    public RegimeRG(String nom, String nomOutput, String [][] InstParamRegimesTab) throws Exception {
+        super(nom, nomOutput, InstParamRegimesTab);
     }
 
      //Méthode pour obtenir cumul de trimestres RG à la date donnée
@@ -29,7 +29,7 @@ public class RegimeRG extends Regime {
             int anneeDep = dateDep.GetDateDep().getYear();
             int moisDep = dateDep.GetDateDep().getMonthValue();
             //on cherche l'indice de la colonne correspondant au regime  
-            int indCol = Tools.TrouverIndiceColonne(CumulDroitsTab, this.nom);
+            int indCol = Tools.TrouverIndiceColonne(CumulDroitsTab, this.GetNom());
             int cumulTrimInit = Integer.parseInt(CumulDroitsTab[2][indCol]) - Integer.parseInt(CumulDroitsTab[3][indCol]);
             int anneeCumul = Tools.dateFromString(CumulDroitsTab[4][indCol]).getYear();
             int cumulTrimProjetes = 0;
@@ -84,10 +84,11 @@ public class RegimeRG extends Regime {
 
      //Méthode pour calcul du montant annuel brut
     @Override
-    public float calculAnnuelBrut (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab, String[][] AnnualDataTab, String[][] InstCoeffRevaloTab) throws Exception {
+    public int calculAnnuelBrut (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab, String[][] AnnualDataTab, String[][] InstCoeffRevaloTab) throws Exception {
         float sam = calculSam(dateDep, InstPassPointsRegimesTab, AnnualDataTab, InstCoeffRevaloTab);
-        float montant = sam * calculCumulPointsTrim(individu, CumulDroitsTab, dateDep) / individu.getTrimRequis() * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) * (1 + this.calculMajoEnfants(individu));
-        float result = Math.round(montant * 100) / (float)100;
+        float montant = sam * Math.min(individu.getTrimRequis(), calculCumulPointsTrim(individu, CumulDroitsTab, dateDep)) / individu.getTrimRequis()
+        * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) * (1 + this.calculMajoEnfants(individu));
+        int result = Math.round(montant);
         return result;
     }
 
@@ -154,6 +155,11 @@ public class RegimeRG extends Regime {
         } 
         return tabSalaireRevalo;
     
+    }
+
+    @Override
+    public Boolean estVersementUnique (Individu individu, String[][] CumulDroitsTab, DateDepart dateDep) {
+        return false;
     }
 
 }

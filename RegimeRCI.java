@@ -3,8 +3,8 @@ public class RegimeRCI extends RegimePoints {
    
 
     //CONSTRUCTEUR
-    public RegimeRCI(String nom, String [][] InstParamRegimesTab) throws Exception {
-        super(nom, InstParamRegimesTab);
+    public RegimeRCI(String nom, String nomOutput, String [][] InstParamRegimesTab) throws Exception {
+        super(nom, nomOutput, InstParamRegimesTab);
     }
 
 

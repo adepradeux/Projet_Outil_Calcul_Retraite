@@ -1,9 +1,11 @@
+
 public class RegimeAgircArrco extends RegimePoints {
    
 
+
     //CONSTRUCTEUR
-    public RegimeAgircArrco(String nom, String [][] InstParamRegimesTab) throws Exception {
-        super(nom, InstParamRegimesTab);
+    public RegimeAgircArrco(String nom, String nomOutput, String [][] InstParamRegimesTab) throws Exception {
+        super(nom, nomOutput, InstParamRegimesTab);
     }
 
 
@@ -19,7 +21,28 @@ public class RegimeAgircArrco extends RegimePoints {
         return result;
     }
 
+    //TODO Calcul versement unique Versement unique = Montant brut annuel de la retraite x Coefficient
+    //Méthode pour calcul du montant annuel brut
+    @Override
+    public int calculAnnuelBrut (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab, String[][] AnnualDataTab, String[][] InstCoeffRevaloTab) throws Exception {
+        int result = 0;
+        if (estVersementUnique(individu, CumulDroitsTab, dateDep)) {
+            // TODO trouver le coeff en fonction de l'âge à la date de départ et modifier la formule ci-dessous
+            float montantVersement = calculCumulPointsTrim(individu, CumulDroitsTab, dateDep) * this.TrouverSalaireRefRegime(InstPassPointsRegimesTab, dateDep);
+            result = Math.round(montantVersement);
+        }
+        else {
+            float ValPt = TrouverValeurPtRegime(InstPassPointsRegimesTab, dateDep);
+            float montant = ValPt * calculCumulPointsTrim(individu, CumulDroitsTab, dateDep) * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) * (1 + this.calculMajoEnfants(individu));
+            result = Math.round(montant);
+        }
+        return result;
+    }
+
+
+
     
+    //TODO Calcul de majoration si 3 enfants ou plus à préciser (selon date d'acquisition des points)
 
 
    

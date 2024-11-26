@@ -1,15 +1,18 @@
 import java.time.LocalDate;
 
 public class DateDepart {
-    private LocalDate dateDep;
+    private final LocalDate dateDep;
     //Boolean carriereLongue;
-    private int trimRachat;
-    private Boolean retraiteProg;
+    private final int trimRachat;
+    private final Boolean retraiteProg;
     
-    private Age ageDep;
-    private int cumulTrim;
-    private int trimManquant;
-    private int trimSurcote;
+    private final Age ageDep;
+    private final int cumulTrim;
+    private final int trimManquant;
+    private final int trimManquantAgeAuto;
+    private final int trimManquantCarcdsfRc;
+    private final int trimSurcoteCarcdsfRc;
+    private final int trimSurcote;
     private int trimSurcoteParent;
 
     //CONSTRUCTEUR
@@ -20,11 +23,15 @@ public class DateDepart {
         this.ageDep = Tools.DateDiffDNN(individu.getDateNaissance(), dateDep);
         this.cumulTrim = CalculCumulTrim(dateDep, trimRachat, individu, AnnualDataTab);
         this.trimManquant = CalculTrimManquant(individu);
+        this.trimManquantAgeAuto = CalculTrimManquantAgeAuto(individu);
+        this.trimManquantCarcdsfRc = CalculTrimManquantCarcdsfRc(individu);
+        this.trimSurcoteCarcdsfRc = CalculTrimSurcoteCarcdsfRc(individu);
         this.trimSurcote = CalculTrimSurcote(dateDep, individu, AnnualDataTab);
     }
 
     
     //cumul des trimestres à la date de départ considérée
+    @SuppressWarnings("UseSpecificCatch")
     private int CalculCumulTrim(LocalDate dateDep, int trimRachat, Individu individu, String[][] AnnualDataTab) throws Exception {
         //détermination du nombre de trimestres pour enfants à ajouter au total
         int trimEnfants;
@@ -67,13 +74,34 @@ public class DateDepart {
     }
 
        
+    //calcul des trimestres manquants pour régimes avec calcul decote selon le cumul de trimestres
     private int CalculTrimManquant(Individu individu) {
         //calcul trim manquant par rapport au trim requis
         int trimManquantRequis = Math.max(0, individu.getTrimRequis() - this.cumulTrim);  
         
         //calcul trim manquant par rapport à l'age taux plein auto
-        int trimManquantAgeAuto = Math.max(0, Tools.AgeDiffTrim(this.ageDep, individu.getAgeTxPleinAuto()));
-        int result = Math.min(trimManquantRequis, trimManquantAgeAuto);
+        int trimManquantAuto = Math.max(0, Tools.AgeDiffTrim(this.ageDep, individu.getAgeTxPleinAuto()));
+        int result = Math.min(trimManquantRequis, trimManquantAuto);
+        return result;
+    }
+
+    //calcul des trimestres manquants pour régimes avec calcul decote selon age avec taux plein à l'âge taux plein auto
+    private int CalculTrimManquantAgeAuto(Individu individu) {
+        int trimManquantAuto = Math.max(0, Tools.AgeDiffTrim(this.ageDep, individu.getAgeTxPleinAuto()));
+        return trimManquantAuto;
+    }
+
+    //calcul des trimestres manquants pour CARCDSF RC avec age taux plein à 67 ans, diminué d'une année par enfant eus
+    private int CalculTrimManquantCarcdsfRc(Individu individu) { 
+        //determination de l'age taux plein
+        Age ageTxPlein;
+        if (individu.getSexe().equals("F")) {
+            ageTxPlein = new Age(individu.getAgeTxPleinAuto().ageAnnee - individu.getNbEnfants(), individu.getAgeTxPleinAuto().ageMois);
+        }
+        else {
+            ageTxPlein = individu.getAgeTxPleinAuto();
+        }
+        int result = Math.max(0, Tools.AgeDiffTrim(this.ageDep, ageTxPlein));
         return result;
     }
 
@@ -93,11 +121,11 @@ public class DateDepart {
             for (int i = 1; i < AnnualDataTab.length; i++) {
                 if (AnnualDataTab[i][0] == null) break;
                 if (Integer.parseInt(AnnualDataTab[i][0]) == anneeAgeLegal) {
-                    nbTrimSurcoteMax = nbTrimSurcoteMax + Integer.parseInt(AnnualDataTab[i][2]) / 12 * (12 - moisAgeLegal + 1);
+                    nbTrimSurcoteMax = nbTrimSurcoteMax + (int)Math.floor(Float.parseFloat(AnnualDataTab[i][2]) / (float)12 * (12 - moisAgeLegal + 1));
                 }
                 else {
                     if (Integer.parseInt(AnnualDataTab[i][0]) == anneeDep) {
-                        nbTrimSurcoteMax = nbTrimSurcoteMax + Integer.parseInt(AnnualDataTab[i][2]) / 12 * moisDep;
+                        nbTrimSurcoteMax = nbTrimSurcoteMax + (int)Math.floor(Float.parseFloat((AnnualDataTab[i][2])) / (float)12 * moisDep);
                     }
                     else {
                         if (Integer.parseInt(AnnualDataTab[i][0]) > anneeAgeLegal && Integer.parseInt(AnnualDataTab[i][0]) < anneeDep) {
@@ -110,6 +138,24 @@ public class DateDepart {
             nbTrimSurcote = Math.min(nbTrimSurcoteMax, Math.max(0, this.cumulTrim - individu.getTrimRequis()));
         }
         return nbTrimSurcote;
+    }
+
+    //calcul des trimestres de surcote pour CARCDSF RC avec age taux plein à 67 ans, diminué d'une année par enfant eus
+    //surcote uniquement si poursuite d'activité libérale
+    private int CalculTrimSurcoteCarcdsfRc(Individu individu) { 
+        //determination de l'age taux plein
+        Age ageTxPlein;
+        int result = 0;
+        if (!individu.getSalarie()) {
+            if (individu.getSexe().equals("F")) {
+                ageTxPlein = new Age(individu.getAgeTxPleinAuto().ageAnnee - individu.getNbEnfants(), individu.getAgeTxPleinAuto().ageMois);
+            }
+            else {
+                ageTxPlein = individu.getAgeTxPleinAuto();
+            }
+            result = Math.max(0, Tools.AgeDiffTrimInf(ageTxPlein, this.ageDep));
+        }
+        return result;
     }
 
     public int trimSurcoteParent() {
@@ -141,8 +187,20 @@ public class DateDepart {
         return trimManquant;
     }
 
+    public int GetTrimManquantAgeAuto() {
+        return trimManquantAgeAuto;
+    }
+
+    public int GetTrimManquantCarcdsfRc() {
+        return trimManquantCarcdsfRc;
+    }
+
     public int GetTrimSurcote() {
         return trimSurcote;
+    }
+
+    public int GetTrimSurcoteCarcdsfRc() {
+        return trimSurcoteCarcdsfRc;
     }
 
     public int GetTrimSurcoteParent() {

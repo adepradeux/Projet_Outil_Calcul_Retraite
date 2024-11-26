@@ -66,8 +66,10 @@ public class CsvFileHelper {
        try {
 			// Création d'un fileWriter pour écrire dans un fichier
 			FileOutputStream file = new FileOutputStream(FILE_NAME);
+            file.write(239);
+            file.write(187);
+            file.write(191);
             OutputStreamWriter fileWriter = new OutputStreamWriter(file, StandardCharsets.UTF_8);
-            //FileWriter fileWriter = new FileWriter(FILE_NAME, false);
 
 			// Création d'un bufferedWriter qui utilise le fileWriter
 			BufferedWriter writer = new BufferedWriter(fileWriter);

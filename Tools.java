@@ -57,7 +57,7 @@ public class Tools {
     return result;
     }
 
-    //retourne le nombre de trimestres entre 2 ages, arrondi au sup pour calcul decote
+    //retourne le nombre de trimestres entre 2 ages, arrondi au sup pour calcul decote (age1<age2)
     public static int AgeDiffTrim(Age age1, Age age2){
         int diffAnnee = age2.ageAnnee - age1.ageAnnee;
         int diffMois = age2.ageMois - age1.ageMois;
@@ -65,23 +65,17 @@ public class Tools {
         double resultInit = Math.ceil(nbDiffMois / 3);
         int diffTrim = (int) resultInit;
         int result = diffTrim;
-        /*if (age2.ageAnnee > age1.ageAnnee){
-            result = diffTrim;
-        }
-        else {
-            if(age2.ageAnnee < age1.ageAnnee) {
-                result = -diffTrim;
-            }
-            else {
-                if(age2.ageMois >= age1.ageMois){
-                    result = diffTrim;
-                }
-                else{
-                    result = -diffTrim;
-                }
-            }
-        }*/
-       
+        return result;
+    }
+
+    //retourne le nombre de trimestres entre 2 ages, arrondi à l'inf pour calcul surcote (age1<age2)
+    public static int AgeDiffTrimInf(Age age1, Age age2){
+        int diffAnnee = age2.ageAnnee - age1.ageAnnee;
+        int diffMois = age2.ageMois - age1.ageMois;
+        double nbDiffMois = diffAnnee * 12 + diffMois;
+        double resultInit = Math.floor(nbDiffMois / 3);
+        int diffTrim = (int) resultInit;
+        int result = diffTrim;
         return result;
     }
 
@@ -167,18 +161,31 @@ public class Tools {
         Regime[] RegimesTab = new Regime[length];
         int j = 0;
         for (int i = 0; i < RegimesTab.length; i++) {
-            String nomReg = CumulDroitsTab[0][i + 1];       
+            String nomReg = CumulDroitsTab[0][i + 1];  
+            String nomRegOutput = CumulDroitsTab[1][i + 1];     
             if (nomReg.equals("rci")) {
-                RegimesTab[j] = new RegimeRCI(nomReg, InstParamRegimesTab);
+                RegimesTab[j] = new RegimeRCI(nomReg, nomRegOutput, InstParamRegimesTab);
             }
             else if (nomReg.equals("agirc_arrco")) {
-                RegimesTab[j] = new RegimeAgircArrco(nomReg, InstParamRegimesTab);
+                RegimesTab[j] = new RegimeAgircArrco(nomReg, nomRegOutput, InstParamRegimesTab);
             }
             else if (nomReg.equals("regime_general")) {
-                RegimesTab[j] = new RegimeRG(nomReg, InstParamRegimesTab);
+                RegimesTab[j] = new RegimeRG(nomReg, nomRegOutput, InstParamRegimesTab);
             }
             else if (nomReg.equals("cnavpl")) {
-                RegimesTab[j] = new RegimeCnavpl(nomReg, InstParamRegimesTab);
+                RegimesTab[j] = new RegimeCnavpl(nomReg, nomRegOutput, InstParamRegimesTab);
+            }
+            else if (nomReg.equals("carcdsf_rc")) {
+                RegimesTab[j] = new RegimeCarcdsfRc(nomReg, nomRegOutput, InstParamRegimesTab);
+            }
+            else if (nomReg.equals("carcdsf_pcv")) {
+                RegimesTab[j] = new RegimeCarcdsfPcv(nomReg, nomRegOutput, InstParamRegimesTab);
+            }
+            else if (nomReg.equals("carcdsf_pcv_avant_2006")) {
+                RegimesTab[j] = new RegimeCarcdsfPcvAvant2006(nomReg, nomRegOutput, InstParamRegimesTab);
+            }
+            else if (nomReg.equals("ircantec")) {
+                RegimesTab[j] = new RegimeIrcantec(nomReg, nomRegOutput, InstParamRegimesTab);
             }
             else {
                 System.out.println("Nom de régime invalide!");
@@ -209,6 +216,19 @@ public class Tools {
         }
        
         return dateDepNew;
+    }
+
+    //méthode pour renvoyer une des données du régime dans le tableau regroupant les paramètre des régimes
+    public static float TrouverDonneeRegime (String nomregime, String[][] InstParamRegimesTab, String donneeATrouver) throws Exception {
+        float result = 0;
+        try {
+            int indLgn = Tools.TrouverIndiceLigne(InstParamRegimesTab, nomregime);
+            int indCol = Tools.TrouverIndiceColonne(InstParamRegimesTab, donneeATrouver);
+            result = Float.parseFloat(InstParamRegimesTab[indLgn][indCol]);
+        } catch (NumberFormatException e) {
+            System.out.println("donnee paramètre régime incorrecte: " + e.getMessage());
+        }
+        return result;
     }
     
       
