@@ -4,8 +4,8 @@ import java.time.LocalDate;
 public class RegimeCnavpl extends RegimePoints {
     
     //CONSTRUCTEUR
-    public RegimeCnavpl(String nom, String nomOutput, String [][] InstParamRegimesTab) throws Exception {
-        super(nom, nomOutput, InstParamRegimesTab);
+    public RegimeCnavpl(String nom, String nomOutput, Data data) throws Exception {
+        super(nom, nomOutput, data);
     }
 
     //METHODES

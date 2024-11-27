@@ -157,35 +157,35 @@ public class Tools {
     }
 
     //méthode pour créer le tableau des régimes à calculer MAJ à chaque nouveau régime programmé
-    public static Regime[] CreateRegimesTab (int length, String[][] CumulDroitsTab, String[][] InstParamRegimesTab ) throws Exception {
+    public static Regime[] CreateRegimesTab (int length, Data data ) throws Exception {
         Regime[] RegimesTab = new Regime[length];
         int j = 0;
         for (int i = 0; i < RegimesTab.length; i++) {
-            String nomReg = CumulDroitsTab[0][i + 1];  
-            String nomRegOutput = CumulDroitsTab[1][i + 1];     
+            String nomReg = data.GetCumulDroitsTab()[0][i + 1];  
+            String nomRegOutput = data.GetCumulDroitsTab()[1][i + 1];     
             if (nomReg.equals("rci")) {
-                RegimesTab[j] = new RegimeRCI(nomReg, nomRegOutput, InstParamRegimesTab);
+                RegimesTab[j] = new RegimeRCI(nomReg, nomRegOutput, data);
             }
             else if (nomReg.equals("agirc_arrco")) {
-                RegimesTab[j] = new RegimeAgircArrco(nomReg, nomRegOutput, InstParamRegimesTab);
+                RegimesTab[j] = new RegimeAgircArrco(nomReg, nomRegOutput, data);
             }
             else if (nomReg.equals("regime_general")) {
-                RegimesTab[j] = new RegimeRG(nomReg, nomRegOutput, InstParamRegimesTab);
+                RegimesTab[j] = new RegimeRG(nomReg, nomRegOutput, data);
             }
             else if (nomReg.equals("cnavpl")) {
-                RegimesTab[j] = new RegimeCnavpl(nomReg, nomRegOutput, InstParamRegimesTab);
+                RegimesTab[j] = new RegimeCnavpl(nomReg, nomRegOutput, data);
             }
             else if (nomReg.equals("carcdsf_rc")) {
-                RegimesTab[j] = new RegimeCarcdsfRc(nomReg, nomRegOutput, InstParamRegimesTab);
+                RegimesTab[j] = new RegimeCarcdsfRc(nomReg, nomRegOutput, data);
             }
             else if (nomReg.equals("carcdsf_pcv")) {
-                RegimesTab[j] = new RegimeCarcdsfPcv(nomReg, nomRegOutput, InstParamRegimesTab);
+                RegimesTab[j] = new RegimeCarcdsfPcv(nomReg, nomRegOutput, data);
             }
             else if (nomReg.equals("carcdsf_pcv_avant_2006")) {
-                RegimesTab[j] = new RegimeCarcdsfPcvAvant2006(nomReg, nomRegOutput, InstParamRegimesTab);
+                RegimesTab[j] = new RegimeCarcdsfPcvAvant2006(nomReg, nomRegOutput, data);
             }
             else if (nomReg.equals("ircantec")) {
-                RegimesTab[j] = new RegimeIrcantec(nomReg, nomRegOutput, InstParamRegimesTab);
+                RegimesTab[j] = new RegimeIrcantec(nomReg, nomRegOutput, data);
             }
             else {
                 System.out.println("Nom de régime invalide!");
@@ -231,6 +231,51 @@ public class Tools {
         return result;
     }
     
-      
+    public static int NbTrimEnfant (Individu individu) throws Exception {
+        int trimEnfants = 0;
+        try {     
+            if (individu.getTrimEnfantsSpecifique() == 0) {
+                if(individu.getSexe().equals("H") ){
+                    trimEnfants = 0;
+                }
+                else {
+                    trimEnfants = individu.getNbEnfants() * 8;
+                }
+            }
+            else {
+                trimEnfants = individu.getTrimEnfantsSpecifique();
+            }
+        } catch (Exception e) {
+        System.out.println("donnee Trim AnnualData incorrecte: " + e.getMessage());
+        }
+        return trimEnfants;
+    }
+
+    //calcul du nombre de trim cotises entre 2 dates pour calcul surcote
+    public static int DiffTrimCotises (LocalDate date1, LocalDate date2, String[][] AnnualDataTab) throws Exception {
+        int nbTrimSurcoteMax = 0;
+        int anneeDate1 = date1.getYear();
+        int moisDate1 = date1.getMonthValue();
+        int anneeDate2 = date2.getYear();
+        int moisDate2 = date2.getMonthValue();
+        for (int i = 1; i < AnnualDataTab.length; i++) {
+            if (AnnualDataTab[i][0] == null) break;
+            if (Integer.parseInt(AnnualDataTab[i][0]) == anneeDate1) {
+                nbTrimSurcoteMax = nbTrimSurcoteMax + (int)Math.floor(Float.parseFloat(AnnualDataTab[i][2]) / (float)12 * (12 - moisDate1 + 1));
+            }
+            else {
+                if (Integer.parseInt(AnnualDataTab[i][0]) == anneeDate2) {
+                    nbTrimSurcoteMax = nbTrimSurcoteMax + (int)Math.floor(Float.parseFloat((AnnualDataTab[i][2])) / (float)12 * moisDate2);
+                }
+                else {
+                    if (Integer.parseInt(AnnualDataTab[i][0]) > anneeDate1 && Integer.parseInt(AnnualDataTab[i][0]) < anneeDate2) {
+                        nbTrimSurcoteMax = nbTrimSurcoteMax + Integer.parseInt(AnnualDataTab[i][2]);
+                    }
+                }
+            }
+
+        }
+        return nbTrimSurcoteMax;
+    }
 
 }

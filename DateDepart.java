@@ -1,6 +1,6 @@
 import java.time.LocalDate;
 
-public class DateDepart {
+public final class DateDepart {
     private final LocalDate dateDep;
     //Boolean carriereLongue;
     private final int trimRachat;
@@ -13,7 +13,7 @@ public class DateDepart {
     private final int trimManquantCarcdsfRc;
     private final int trimSurcoteCarcdsfRc;
     private final int trimSurcote;
-    private int trimSurcoteParent;
+    private final int trimSurcoteParent;
 
     //CONSTRUCTEUR
     DateDepart(LocalDate dateDep, int trimRachat, Boolean retraiteProg, Individu individu, String[][] AnnualDataTab) throws Exception{
@@ -27,6 +27,7 @@ public class DateDepart {
         this.trimManquantCarcdsfRc = CalculTrimManquantCarcdsfRc(individu);
         this.trimSurcoteCarcdsfRc = CalculTrimSurcoteCarcdsfRc(individu);
         this.trimSurcote = CalculTrimSurcote(dateDep, individu, AnnualDataTab);
+        this.trimSurcoteParent = CalculTrimSurcoteParent(individu, AnnualDataTab, trimRachat);
     }
 
     
@@ -37,18 +38,7 @@ public class DateDepart {
         int trimEnfants;
         int result = 0;
         try {     
-            if (individu.getTrimEnfantsSpecifique() == 0){
-                if(individu.getSexe().equals("H") ){
-                    trimEnfants = 0;
-                }
-                else {
-                    trimEnfants = individu.getNbEnfants() * 8;
-                }
-            }
-            else {
-                trimEnfants = individu.getTrimEnfantsSpecifique();
-            }
-    
+            trimEnfants = Tools.NbTrimEnfant(individu);
             //nombre de trim initial avant ajout des trimestres de la carrière
             int trimAjout = trimEnfants + trimRachat;
             
@@ -66,6 +56,7 @@ public class DateDepart {
             //ajout des trimestres de l'année de la date de départ
             int trimAnneeDep = (moisDep - 1) * Integer.parseInt(AnnualDataTab[indLigneAnneeDep][1]) / 12;            
             result = cumulTrimCarriere + trimAnneeDep + trimAjout;
+            
         } catch (Exception e) {
             System.out.println("donnee Trim AnnualData incorrecte: " + e.getMessage());
         }
@@ -78,7 +69,7 @@ public class DateDepart {
     private int CalculTrimManquant(Individu individu) {
         //calcul trim manquant par rapport au trim requis
         int trimManquantRequis = Math.max(0, individu.getTrimRequis() - this.cumulTrim);  
-        
+       
         //calcul trim manquant par rapport à l'age taux plein auto
         int trimManquantAuto = Math.max(0, Tools.AgeDiffTrim(this.ageDep, individu.getAgeTxPleinAuto()));
         int result = Math.min(trimManquantRequis, trimManquantAuto);
@@ -113,6 +104,7 @@ public class DateDepart {
         }
         else {
             //calcul nb trim surcote max en fonction des trimestres cotisés entre age légal et date depart
+            //TODO utiliser la fonction DiffTrimCotises dans Tools
             int nbTrimSurcoteMax = 0;
             int anneeAgeLegal = individu.getDateAgeLegal().getYear();
             int moisAgeLegal = individu.getDateAgeLegal().getMonthValue();
@@ -142,6 +134,7 @@ public class DateDepart {
 
     //calcul des trimestres de surcote pour CARCDSF RC avec age taux plein à 67 ans, diminué d'une année par enfant eus
     //surcote uniquement si poursuite d'activité libérale
+    //TODO par prudence, ne déclencher la surcote qu'après 67 ans meme si le taux plein est avant pour les mères avec enfant
     private int CalculTrimSurcoteCarcdsfRc(Individu individu) { 
         //determination de l'age taux plein
         Age ageTxPlein;
@@ -158,8 +151,24 @@ public class DateDepart {
         return result;
     }
 
-    public int trimSurcoteParent() {
-        return 12; //TODO calcul surcote parentale
+    //calcul nb trim de surcote parentale : pour assurés nés à partir de 1964, si depart après l'age légal et si majo de trim pour enfant
+    public int CalculTrimSurcoteParent(Individu individu, String[][] AnnualDataTab, int trimRachat) throws Exception {
+        int trimSurcote = 0;
+        int nbTrimEnfants = Tools.NbTrimEnfant(individu);
+        LocalDate dateAgeLegal = Tools.DDNAddAge(individu.getDateNaissance(), individu.getAgeLegal());
+        if (individu.getDateNaissance().getYear() >= 1964 && this.dateDep.compareTo(dateAgeLegal) >= 0 && nbTrimEnfants> 0) {
+            //calcul du nombre de trimestres cumulés à l'age legal
+            int cumulTrimAgeLegal = CalculCumulTrim(dateAgeLegal, this.trimRachat, individu, AnnualDataTab) + nbTrimEnfants + trimRachat;
+            
+            if (cumulTrimAgeLegal > individu.getTrimRequis()) {
+                LocalDate dateDebutSurcote = LocalDate.of(dateAgeLegal.getYear() - 1, dateAgeLegal.getMonthValue(), dateAgeLegal.getDayOfMonth()); //age légal - 1 ans
+                int trimSurcoteMax = Tools.DiffTrimCotises(dateDebutSurcote, dateAgeLegal, AnnualDataTab);
+                trimSurcote = Math.min(trimSurcoteMax, cumulTrimAgeLegal - individu.getTrimRequis());
+            }
+        }
+        int result = Math.min(4, trimSurcote);
+        System.out.println("trim surcote parentale " + trimSurcote);
+        return result; //TODO calcul surcote parentale à finir
     }
 
     //GETTER

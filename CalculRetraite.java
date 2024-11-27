@@ -48,12 +48,13 @@ public class CalculRetraite {
         CsvFileHelper.getData(FILE_INST_COEFF_REVALO, InstCoeffRevaloTab);
         CsvFileHelper.getData(FILE_INST_COEFF_ARRCO_VU, InstCoeffArrcoVu);
 
-        Individu individu = new Individu(IndTab, InstAgeTrimTab);
+        //initialisation des instances Data et Individu
+        Data data = new Data(IndTab, AnnualDataTab, CumulDroitsTab, DateRetraiteTab, InstAgeTrimTab, InstParamRegimesTab, InstPassPointsRegimesTab,
+         InstSalaireMinTrimTab, InstCoeffRevaloTab, InstCoeffArrcoVu);
+        Individu individu = new Individu(data);
         
-        //création d'un tableau avec le nom des régimes déjà paramétrés et programmés MAJ dès qu'on programme un nouveau régime + MAJ de CreateRegimesTab dans Tools
-        //String [] InitialRegimesTab = {"agirc_arrco", "rci"}; //TEST à priori inutile
-        
-
+        //SI CREATION NOUVEAU REGIME : MAJ de CreateRegimesTab dans Tools
+             
 
         //on crée un tableau d'objet de classe DateDepart avec toutes les dates de retraite à calculer à partir de dateRetraiteTab
         int nbDate = 0;
@@ -81,7 +82,7 @@ public class CalculRetraite {
         System.out.println(" verif nb reg " + nbReg);
             //initialisation du tableau des regimes à calculer
 
-        Regime[] RegimesTab = Tools.CreateRegimesTab(nbReg, CumulDroitsTab, InstParamRegimesTab );
+        Regime[] RegimesTab = Tools.CreateRegimesTab(nbReg, data);
 
         //pour chaque date de DateDepartTab : parcourir le tableau des régimes pour calcul des montants/nbPts/taux/surcote pour chaque regime
         String [][] Resultat = new String[nbReg * nbDate][15];
@@ -97,20 +98,20 @@ public class CalculRetraite {
                     DateDepartCalcul = Tools.DecalerTrimCivil(DateDepartTab[i], individu, AnnualDataTab);
                 }
                 //on adapte l'affichage si le versement est un capital unique (et non un montant mensuel)
-                if (RegimesTab[j].estVersementUnique(individu, CumulDroitsTab, DateDepartCalcul)) {
-                    System.out.println(RegimesTab[j].GetNomOutput() + " : Versement unique : " + RegimesTab[j].estVersementUnique(individu, CumulDroitsTab, DateDepartCalcul));
+                if (RegimesTab[j].estVersementUnique(individu, data, DateDepartCalcul)) {
                     String affichageVersementUnique = "Versement net unique de ";
                     Resultat[k][0] = String.valueOf(DateDepartCalcul.GetDateDep()); 
                     Resultat[k][1] = RegimesTab[j].GetNomOutput();
                     Resultat[k][2] = String.valueOf(RegimesTab[j].calculCumulPointsTrim(individu, CumulDroitsTab, DateDepartCalcul));
                     Resultat[k][3] = String.valueOf(RegimesTab[j].calculTaux(DateDepartCalcul));
                     Resultat[k][4] = String.valueOf(RegimesTab[j].calculSurcote(DateDepartCalcul));
-                    Resultat[k][5] = String.valueOf(RegimesTab[j].calculSam(DateDepartTab[i], InstPassPointsRegimesTab, AnnualDataTab, InstCoeffRevaloTab));
+                    Resultat[k][5] = String.valueOf(RegimesTab[j].calculSam(DateDepartTab[i], data));
+                    //Resultat[k][5] = String.valueOf(RegimesTab[j].calculSam(DateDepartTab[i], data));
                     Resultat[k][6] = String.valueOf(RegimesTab[j].TrouverValeurPtRegime(InstPassPointsRegimesTab, DateDepartCalcul));
                     Resultat[k][7] = String.valueOf(RegimesTab[j].calculMajoEnfants(individu));
                     Resultat[k][8] = "";
                     Resultat[k][9] = "";
-                    Resultat[k][10] = affichageVersementUnique.concat(String.valueOf(RegimesTab[j].calculAnnuelNet(individu, DateDepartCalcul, InstPassPointsRegimesTab, CumulDroitsTab, AnnualDataTab, InstCoeffRevaloTab))).concat(" €");
+                    Resultat[k][10] = affichageVersementUnique.concat(String.valueOf(RegimesTab[j].calculAnnuelNet(individu, DateDepartCalcul, data))).concat(" €");
                 }
                 else {
                     Resultat[k][0] = String.valueOf(DateDepartCalcul.GetDateDep()); 
@@ -118,12 +119,12 @@ public class CalculRetraite {
                     Resultat[k][2] = String.valueOf(RegimesTab[j].calculCumulPointsTrim(individu, CumulDroitsTab, DateDepartCalcul));
                     Resultat[k][3] = String.valueOf(RegimesTab[j].calculTaux(DateDepartCalcul));
                     Resultat[k][4] = String.valueOf(RegimesTab[j].calculSurcote(DateDepartCalcul));
-                    Resultat[k][5] = String.valueOf(RegimesTab[j].calculSam(DateDepartTab[i], InstPassPointsRegimesTab, AnnualDataTab, InstCoeffRevaloTab));
+                    Resultat[k][5] = String.valueOf(RegimesTab[j].calculSam(DateDepartTab[i], data));
                     Resultat[k][6] = String.valueOf(RegimesTab[j].TrouverValeurPtRegime(InstPassPointsRegimesTab, DateDepartCalcul));
                     Resultat[k][7] = String.valueOf(RegimesTab[j].calculMajoEnfants(individu));
-                    Resultat[k][8] = String.valueOf(RegimesTab[j].calculAnnuelBrut(individu, DateDepartCalcul, InstPassPointsRegimesTab, CumulDroitsTab, AnnualDataTab, InstCoeffRevaloTab));
+                    Resultat[k][8] = String.valueOf(RegimesTab[j].calculAnnuelBrut(individu, DateDepartCalcul, data));
                     Resultat[k][9] = String.valueOf(RegimesTab[j].GetTx_plvt_sociaux());
-                    Resultat[k][10] = String.valueOf(RegimesTab[j].calculAnnuelNet(individu, DateDepartCalcul, InstPassPointsRegimesTab, CumulDroitsTab, AnnualDataTab, InstCoeffRevaloTab));
+                    Resultat[k][10] = String.valueOf(RegimesTab[j].calculAnnuelNet(individu, DateDepartCalcul, data));
                 }
                 // TEST System.out.println("date " + DateDepartTab[i].GetDateDep() + " | " + RegimesTab[j].nom + " | retour sam " + Resultat[k][5]);
                 k++;
@@ -135,7 +136,6 @@ public class CalculRetraite {
         CsvFileHelper.writeData("C:\\Users\\audre\\Desktop\\Retraite\\Projet_Outil_Calcul_Retraite\\Output\\resultatsTest.csv", headTabResult, Resultat);
         
         //TODO sortir un fichier CSV avec les salaires revalorisés 
-        //TODO calcul capital unique agirc-arrco
         //TODO finir test 2
         
        

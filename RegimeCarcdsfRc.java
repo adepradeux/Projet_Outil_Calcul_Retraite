@@ -1,8 +1,8 @@
 public class RegimeCarcdsfRc extends RegimePoints {
 
     //CONSTRUCTEUR
-    public RegimeCarcdsfRc(String nom, String nomOutput, String [][] InstParamRegimesTab) throws Exception {
-        super(nom, nomOutput, InstParamRegimesTab);
+    public RegimeCarcdsfRc(String nom, String nomOutput, Data data) throws Exception {
+        super(nom, nomOutput, data);
     }
 
         

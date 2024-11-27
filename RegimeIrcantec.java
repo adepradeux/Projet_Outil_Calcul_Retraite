@@ -4,8 +4,8 @@ import java.time.LocalDate;
 public class RegimeIrcantec extends RegimePoints {
     
     //CONSTRUCTEUR
-    public RegimeIrcantec (String nom, String nomOutput, String [][] InstParamRegimesTab) throws Exception {
-        super(nom, nomOutput, InstParamRegimesTab);
+    public RegimeIrcantec (String nom, String nomOutput, Data data) throws Exception {
+        super(nom, nomOutput, data);
     }
 
     //calcul taux de calcul avec decote : 1% pour les trim manquants de 1 à 12, puis 1,25% pour trim manquant à partir de 13 - decote 22% max
@@ -44,28 +44,19 @@ public class RegimeIrcantec extends RegimePoints {
         
     //Méthode pour calcul du montant annuel brut
     @Override
-    public int calculAnnuelBrut (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab, String[][] AnnualDataTab, String[][] InstCoeffRevaloTab) throws Exception {
+    public int calculAnnuelBrut (Individu individu, DateDepart dateDep, Data data) throws Exception {
         int result = 0;
-        if (estVersementUnique(individu, CumulDroitsTab, dateDep)) {
+        if (estVersementUnique(individu, data, dateDep)) {
             LocalDate dateValeur = LocalDate.of(dateDep.GetDateDep().getYear() - 1, dateDep.GetDateDep().getMonthValue(), 1); //il faut prendre le salaire de ref de l'année précédant le départ
-            DateDepart dateDepPourValeur = new DateDepart(dateValeur, dateDep.GetTrimRachat(), dateDep.GetRetraiteProg(), individu, AnnualDataTab);
-            float montantVersement = calculCumulPointsTrim(individu, CumulDroitsTab, dateDep) * this.TrouverSalaireRefRegime(InstPassPointsRegimesTab, dateDepPourValeur);
+            DateDepart dateDepPourValeur = new DateDepart(dateValeur, dateDep.GetTrimRachat(), dateDep.GetRetraiteProg(), individu, data.GetAnnualDataTab());
+            float montantVersement = calculCumulPointsTrim(individu, data.GetCumulDroitsTab(), dateDep) * this.TrouverSalaireRefRegime(data.GetInstPassPointsRegimesTab(), dateDepPourValeur);
             result = Math.round(montantVersement);
         }
         else {
-            float ValPt = TrouverValeurPtRegime(InstPassPointsRegimesTab, dateDep);
-            float montant = ValPt * calculCumulPointsTrim(individu, CumulDroitsTab, dateDep) * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) * (1 + this.calculMajoEnfants(individu));
+            float ValPt = TrouverValeurPtRegime(data.GetInstPassPointsRegimesTab(), dateDep);
+            float montant = ValPt * calculCumulPointsTrim(individu, data.GetCumulDroitsTab(), dateDep) * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) * (1 + this.calculMajoEnfants(individu));
             result = Math.round(montant);
         }
-        return result;
-    }
-
-    //Méthode pour calcul du montant annuel net
-
-    @Override
-    public int calculAnnuelNet (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab, String[][] AnnualDataTab, String[][] InstCoeffRevaloTab) throws Exception {
-        float montant = this.calculAnnuelBrut(individu, dateDep, InstPassPointsRegimesTab, CumulDroitsTab, AnnualDataTab, InstCoeffRevaloTab) * (1 - this.GetTx_plvt_sociaux());
-        int result = Math.round(montant);
         return result;
     }
 

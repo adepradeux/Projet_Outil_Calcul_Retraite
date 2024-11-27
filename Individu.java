@@ -15,19 +15,19 @@ public class Individu {
     private LocalDate dateAgeTxPleinAuto;
 
     //CONSTRUCTEUR
-    Individu(String[][] IndTab, String[][] InstAgeTrimTab) throws Exception {
+    Individu(Data data) throws Exception {
         try{
-            this.dateNaissance = Tools.dateFromString(IndTab[0][1]);
-            this.sexe = IndTab[1][1];
-            this.nbEnfants = Integer.parseInt(IndTab[2][1]);
-            this.trimEnfantSpecifique = Integer.parseInt(IndTab[5][1]);
-            this.trimRequis = CalculTrimRequis(InstAgeTrimTab);
-            this.ageLegal = CalculAgeLegal(InstAgeTrimTab);
+            this.dateNaissance = Tools.dateFromString(data.GetIndTab()[0][1]);
+            this.sexe = data.GetIndTab()[1][1];
+            this.nbEnfants = Integer.parseInt(data.GetIndTab()[2][1]);
+            this.trimEnfantSpecifique = Integer.parseInt(data.GetIndTab()[5][1]);
+            this.trimRequis = CalculTrimRequis(data.GetInstAgeTrimTab());
+            this.ageLegal = CalculAgeLegal(data.GetInstAgeTrimTab());
             this.dateAgeLegal = Tools.DDNAddAge(this.dateNaissance, this.ageLegal);
-            this.ageTxPleinAuto = CalculAgeTxPleinAuto(InstAgeTrimTab);
+            this.ageTxPleinAuto = CalculAgeTxPleinAuto(data.GetInstAgeTrimTab());
             this.dateAgeTxPleinAuto = Tools.DDNAddAge(this.dateNaissance, this.ageTxPleinAuto);
-            this.inaptitude = Integer.parseInt(IndTab[3][1]) == 1;
-            this.salarie = Integer.parseInt(IndTab[4][1]) == 1;
+            this.inaptitude = Integer.parseInt(data.GetIndTab()[3][1]) == 1;
+            this.salarie = Integer.parseInt(data.GetIndTab()[4][1]) == 1;
         } catch (Exception e)  {
             throw new Exception("donnee individu incorrecte: " + e.getMessage()) ;
         }

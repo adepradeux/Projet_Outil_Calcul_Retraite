@@ -2,8 +2,8 @@ import java.util.Arrays;
 
 public class RegimeRG extends Regime {
     //CONSTRUCTEUR
-    public RegimeRG(String nom, String nomOutput, String [][] InstParamRegimesTab) throws Exception {
-        super(nom, nomOutput, InstParamRegimesTab);
+    public RegimeRG(String nom, String nomOutput, Data data) throws Exception {
+        super(nom, nomOutput, data);
     }
 
      //Méthode pour obtenir cumul de trimestres RG à la date donnée
@@ -66,7 +66,7 @@ public class RegimeRG extends Regime {
     //Méthode pour obtenir taux surcote
     @Override
     public float calculSurcote (DateDepart dateDep) {
-        float surcote = dateDep.GetTrimSurcote() * this.GetTx_surcote_1();
+        float surcote = (dateDep.GetTrimSurcote() + dateDep.GetTrimSurcoteParent()) * this.GetTx_surcote_1();
         float result = Math.round(surcote * 10000) / (float)10000;
         return result;
     }
@@ -84,24 +84,24 @@ public class RegimeRG extends Regime {
 
      //Méthode pour calcul du montant annuel brut
     @Override
-    public int calculAnnuelBrut (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab, String[][] AnnualDataTab, String[][] InstCoeffRevaloTab) throws Exception {
-        float sam = calculSam(dateDep, InstPassPointsRegimesTab, AnnualDataTab, InstCoeffRevaloTab);
-        float montant = sam * Math.min(individu.getTrimRequis(), calculCumulPointsTrim(individu, CumulDroitsTab, dateDep)) / individu.getTrimRequis()
+    public int calculAnnuelBrut (Individu individu, DateDepart dateDep, Data data) throws Exception {
+        float sam = calculSam(dateDep, data);
+        float montant = sam * Math.min(individu.getTrimRequis(), calculCumulPointsTrim(individu, data.GetCumulDroitsTab(), dateDep)) / individu.getTrimRequis()
         * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) * (1 + this.calculMajoEnfants(individu));
         int result = Math.round(montant);
         return result;
     }
 
     @Override
-    public float calculSam (DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] AnnualDataTab, String[][] InstCoeffRevaloTab) throws Exception {
+    public float calculSam (DateDepart dateDep, Data data) throws Exception {
         
-        Salaire tabSalaireRevalo[] = CreerTabSalaireRevalo(dateDep, InstPassPointsRegimesTab, AnnualDataTab, InstCoeffRevaloTab);
+        Salaire tabSalaireRevalo[] = CreerTabSalaireRevalo(dateDep, data.GetInstPassPointsRegimesTab(), data.GetAnnualDataTab(), data.GetInstCoeffRevaloTab());
         ComparateurSalaireRevalo salaireComparator = new ComparateurSalaireRevalo();
         Arrays.sort(tabSalaireRevalo, salaireComparator);
         int nbSalaire = 0;
         float sommeSalaireRevalo = 0;
         for (Salaire element : tabSalaireRevalo) {
-            //System.out.println("verif TabSalaireRevalo " + element.GetAnnee() + " | " + element.GetSalaire() + " | " + element.GetSalaireRevalo() ); //TEST
+            
             if (element == null) break;
             if (nbSalaire > 24) break;
             if (element.GetAnnee() < dateDep.GetDateDep().getYear() && element.GetSalaireRevalo() != 0) {
@@ -158,7 +158,7 @@ public class RegimeRG extends Regime {
     }
 
     @Override
-    public Boolean estVersementUnique (Individu individu, String[][] CumulDroitsTab, DateDepart dateDep) {
+    public Boolean estVersementUnique (Individu individu, Data data, DateDepart dateDep) {
         return false;
     }
 

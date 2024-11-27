@@ -3,8 +3,8 @@ public class RegimeCarcdsfPcv extends RegimePoints {
     //regime pour les points CARCDSF PCV acquis à partir du 01/01/2006
 
     //CONSTRUCTEUR
-    public RegimeCarcdsfPcv(String nom, String nomOutput, String [][] InstParamRegimesTab) throws Exception {
-        super(nom, nomOutput, InstParamRegimesTab);
+    public RegimeCarcdsfPcv(String nom, String nomOutput, Data data) throws Exception {
+        super(nom, nomOutput, data);
     }
 
     //Méthode pour obtenir taux de calcul avec decote en prenant compte de l'age taux plein à 67 ans

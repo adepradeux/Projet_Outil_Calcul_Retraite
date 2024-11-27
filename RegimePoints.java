@@ -5,9 +5,9 @@ public class RegimePoints extends Regime {
     private final float seuilPointCapUnique;
     
     //CONSTRUCTEUR
-    public RegimePoints(String nom, String nomOutput, String [][] InstParamRegimesTab) throws Exception {
-        super(nom, nomOutput, InstParamRegimesTab);
-        seuilPointCapUnique = Tools.TrouverDonneeRegime(this.GetNom(), InstParamRegimesTab, "seuil_point_cap_unique");
+    public RegimePoints(String nom, String nomOutput, Data data) throws Exception {
+        super(nom, nomOutput, data);
+        seuilPointCapUnique = Tools.TrouverDonneeRegime(this.GetNom(), data.GetInstParamRegimesTab(), "seuil_point_cap_unique");
     }
 
     
@@ -129,25 +129,25 @@ public class RegimePoints extends Regime {
 
     //Méthode pour calcul du montant annuel brut
     @Override
-    public int calculAnnuelBrut (Individu individu, DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] CumulDroitsTab, String[][] AnnualDataTab, String[][] InstCoeffRevaloTab) throws Exception {
-        float ValPt = TrouverValeurPtRegime(InstPassPointsRegimesTab, dateDep);
-        float montant = ValPt * calculCumulPointsTrim(individu, CumulDroitsTab, dateDep) * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) * (1 + this.calculMajoEnfants(individu));
+    public int calculAnnuelBrut (Individu individu, DateDepart dateDep, Data data) throws Exception {
+        float ValPt = TrouverValeurPtRegime(data.GetInstPassPointsRegimesTab(), dateDep);
+        float montant = ValPt * calculCumulPointsTrim(individu, data.GetCumulDroitsTab(), dateDep) * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) * (1 + this.calculMajoEnfants(individu));
         int result = Math.round(montant);
         return result;
     }
 
     @Override
-    public float calculSam (DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] AnnualDataTab, String[][] InstCoeffRevaloTab) throws Exception {
+    public float calculSam (DateDepart dateDep, Data data) throws Exception {
         return 0;
     }
 
      //Méthode déterminer le versement se fait en capital unique (si nb points ou montant inf à un certain seuil)
     @Override
-    public Boolean estVersementUnique (Individu individu, String[][] CumulDroitsTab, DateDepart dateDep) {
+    public Boolean estVersementUnique (Individu individu, Data data, DateDepart dateDep) {
         Boolean result = false;
         float cumulPoints = 0;
         try {
-            cumulPoints = calculCumulPointsTrim(individu, CumulDroitsTab, dateDep);
+            cumulPoints = calculCumulPointsTrim(individu, data.GetCumulDroitsTab(), dateDep);
         } catch (Exception ex) {
         }
         if (cumulPoints < this.seuilPointCapUnique) {
