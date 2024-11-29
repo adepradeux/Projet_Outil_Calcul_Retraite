@@ -1,7 +1,7 @@
 ﻿Régime                                                            ;regime_general;agirc_arrco;ircantec;cnavpl;carcdsf_rc;carcdsf_pcv_avant_2006;carcdsf_pcv
 Nom                                                               ;Régime Général ;Agirc-Arrco ;IRCANTEC;CARCDSF Base ;CARCDSF RC;CARCDSF PCV avant 2006;CARCDSF PCV
-Cumul point              ;;118;521;8853.3       ;331.58;82.5;132.3
-Dont points acquis avant 2012 pour agirc-arrco;;0;0;0;0;0;0
+Cumul point/Trim pour RG                                          ;;7845.75     ;175;8853.3       ;331.58;82.5;121.9
+Dont points arrco avant 2012;;0;0;0;0;0;0
 Date cumul                                                        ;;31/12/2023;31/12/2023;31/12/2023;31/12/2023;31/12/2023;31/12/2023
 2023;;0;0;476.3;18.93;0;10.44
 2024;;0;0;476.3;18.93;0;10.44

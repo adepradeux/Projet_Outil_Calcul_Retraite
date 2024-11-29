@@ -15,7 +15,7 @@ public class RegimePoints extends Regime {
     
     //Méthode pour obtenir cumul de points à la date donnée
     @Override
-    public float calculCumulPointsTrim(Individu individu, String[][] CumulDroitsTab, DateDepart dateDep) throws Exception {
+    public float calculCumulPointsTrim(Individu individu, Data data, DateDepart dateDep) throws Exception {
         float result;
         try {
            
@@ -23,20 +23,20 @@ public class RegimePoints extends Regime {
             int moisDep = dateDep.GetDateDep().getMonthValue();
             //on cherche l'indice de la colonne correspondant au regime  
               
-            int indCol = Tools.TrouverIndiceColonne(CumulDroitsTab, this.GetNom());
+            int indCol = Tools.TrouverIndiceColonne(data.GetCumulDroitsTab(), this.GetNom());
             
-            float cumulPointsInit = Float.parseFloat(CumulDroitsTab[2][indCol]);
-            int anneeCumul = Tools.dateFromString(CumulDroitsTab[4][indCol]).getYear();
+            float cumulPointsInit = Float.parseFloat(data.GetCumulDroitsTab()[2][indCol]);
+            int anneeCumul = Tools.dateFromString(data.GetCumulDroitsTab()[4][indCol]).getYear();
             float cumulPointsProjetes = 0;
             int i = 5; //en 5 -> début projection des points
-            while(CumulDroitsTab[i][indCol] != null && Integer.parseInt(CumulDroitsTab[i][0]) < anneeDep) {
-                if (Integer.parseInt(CumulDroitsTab[i][0]) > anneeCumul){
-                    cumulPointsProjetes = cumulPointsProjetes + Float.parseFloat(CumulDroitsTab[i][indCol]);
+            while(data.GetCumulDroitsTab()[i][indCol] != null && Integer.parseInt(data.GetCumulDroitsTab()[i][0]) < anneeDep) {
+                if (Integer.parseInt(data.GetCumulDroitsTab()[i][0]) > anneeCumul){
+                    cumulPointsProjetes = cumulPointsProjetes + Float.parseFloat(data.GetCumulDroitsTab()[i][indCol]);
                 }
                 i++;
             }
             int indLigneAnneeDep = i;
-            float pointsAnneeDep =  (moisDep - 1) * Float.parseFloat(CumulDroitsTab[indLigneAnneeDep][indCol]) /12;
+            float pointsAnneeDep =  (moisDep - 1) * Float.parseFloat(data.GetCumulDroitsTab()[indLigneAnneeDep][indCol]) /12;
             pointsAnneeDep = Math.round(pointsAnneeDep * 100) / (float)100;
             result = cumulPointsInit + cumulPointsProjetes + pointsAnneeDep;
         } catch (Exception e) {
@@ -131,7 +131,7 @@ public class RegimePoints extends Regime {
     @Override
     public int calculAnnuelBrut (Individu individu, DateDepart dateDep, Data data) throws Exception {
         float ValPt = TrouverValeurPtRegime(data.GetInstPassPointsRegimesTab(), dateDep);
-        float montant = ValPt * calculCumulPointsTrim(individu, data.GetCumulDroitsTab(), dateDep) * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) * (1 + this.calculMajoEnfants(individu));
+        float montant = ValPt * calculCumulPointsTrim(individu, data, dateDep) * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) * (1 + this.calculMajoEnfants(individu));
         int result = Math.round(montant);
         return result;
     }
@@ -147,7 +147,7 @@ public class RegimePoints extends Regime {
         Boolean result = false;
         float cumulPoints = 0;
         try {
-            cumulPoints = calculCumulPointsTrim(individu, data.GetCumulDroitsTab(), dateDep);
+            cumulPoints = calculCumulPointsTrim(individu, data, dateDep);
         } catch (Exception ex) {
         }
         if (cumulPoints < this.seuilPointCapUnique) {

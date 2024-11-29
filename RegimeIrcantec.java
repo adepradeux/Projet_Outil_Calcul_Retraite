@@ -49,12 +49,12 @@ public class RegimeIrcantec extends RegimePoints {
         if (estVersementUnique(individu, data, dateDep)) {
             LocalDate dateValeur = LocalDate.of(dateDep.GetDateDep().getYear() - 1, dateDep.GetDateDep().getMonthValue(), 1); //il faut prendre le salaire de ref de l'année précédant le départ
             DateDepart dateDepPourValeur = new DateDepart("",dateValeur, dateDep.GetTrimRachat(), dateDep.GetRetraiteProg(), individu, data.GetAnnualDataTab());
-            float montantVersement = calculCumulPointsTrim(individu, data.GetCumulDroitsTab(), dateDep) * this.TrouverSalaireRefRegime(data.GetInstPassPointsRegimesTab(), dateDepPourValeur);
+            float montantVersement = calculCumulPointsTrim(individu, data, dateDep) * this.TrouverSalaireRefRegime(data.GetInstPassPointsRegimesTab(), dateDepPourValeur);
             result = Math.round(montantVersement);
         }
         else {
             float ValPt = TrouverValeurPtRegime(data.GetInstPassPointsRegimesTab(), dateDep);
-            float montant = ValPt * calculCumulPointsTrim(individu, data.GetCumulDroitsTab(), dateDep) * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) * (1 + this.calculMajoEnfants(individu));
+            float montant = ValPt * calculCumulPointsTrim(individu, data, dateDep) * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) * (1 + this.calculMajoEnfants(individu));
             result = Math.round(montant);
         }
         return result;

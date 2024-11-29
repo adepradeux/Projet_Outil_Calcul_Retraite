@@ -49,7 +49,6 @@ public final class DateDepart {
             int moisDep = dateDep.getMonthValue();
             int cumulTrimCarriere = 0;
 
-            //TEST new annual data tab
             int i = 2; //en 0 -> en-tetes du tableau
             
             while(AnnualDataTab[i][0] != null && Integer.parseInt(AnnualDataTab[i][0]) < anneeDep) {
@@ -59,17 +58,7 @@ public final class DateDepart {
             int indLigneAnneeDep = i;
             //ajout des trimestres de l'année de la date de départ
             int trimAnneeDep = (moisDep - 1) * Integer.parseInt(AnnualDataTab[indLigneAnneeDep][1]) / 12;   
-
-            /* /////// INIT
-            int i = 1; //en 0 -> en-tetes du tableau
-            
-            while(AnnualDataTab[i][0] != null && Integer.parseInt(AnnualDataTab[i][0]) < anneeDep) {
-                cumulTrimCarriere = cumulTrimCarriere + Integer.parseInt(AnnualDataTab[i][1]);
-                i++;
-            } 
-            int indLigneAnneeDep = i;
-            //ajout des trimestres de l'année de la date de départ
-            int trimAnneeDep = (moisDep - 1) * Integer.parseInt(AnnualDataTab[indLigneAnneeDep][1]) / 12;   */  /////////       
+     
             result = cumulTrimCarriere + trimAnneeDep + trimAjout;
             
         } catch (Exception e) {

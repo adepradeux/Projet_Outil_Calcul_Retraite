@@ -29,7 +29,7 @@ abstract  class Regime {
     
 
     //Méthode pour retourner le cumul points ou trim pour affichage resultat - A définir dans les classes régimes héritières
-    abstract float calculCumulPointsTrim(Individu individu, String[][] CumulDroitsTab, DateDepart dateDep) throws Exception;  
+    abstract float calculCumulPointsTrim(Individu individu, Data data, DateDepart dateDep) throws Exception;  
 
     //Méthode pour calcul du taux de calcul - A définir dans les classes régimes héritières
     abstract float calculTaux (DateDepart dateDep) throws Exception;

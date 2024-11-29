@@ -2,6 +2,46 @@ import java.time.LocalDate;
 
 public class Tools {
     
+    //méthode pour créer le tableau des régimes à calculer MAJ à chaque nouveau régime programmé
+    public static Regime[] CreateRegimesTab (int length, Data data ) throws Exception {
+        Regime[] RegimesTab = new Regime[length];
+        int j = 0;
+        for (int i = 0; i < RegimesTab.length; i++) {
+            String nomReg = data.GetCumulDroitsTab()[0][i + 1];  
+            String nomRegOutput = data.GetCumulDroitsTab()[1][i + 1];     
+            if (nomReg.equals("rci")) {
+                RegimesTab[j] = new RegimeRCI(nomReg, nomRegOutput, data);
+            }
+            else if (nomReg.equals("agirc_arrco")) {
+                RegimesTab[j] = new RegimeAgircArrco(nomReg, nomRegOutput, data);
+            }
+            else if (nomReg.equals("regime_general")) {
+                RegimesTab[j] = new RegimeRG(nomReg, nomRegOutput, data);
+            }
+            else if (nomReg.equals("cnavpl")) {
+                RegimesTab[j] = new RegimeCnavpl(nomReg, nomRegOutput, data);
+            }
+            else if (nomReg.equals("carcdsf_rc")) {
+                RegimesTab[j] = new RegimeCarcdsfRc(nomReg, nomRegOutput, data);
+            }
+            else if (nomReg.equals("carcdsf_pcv")) {
+                RegimesTab[j] = new RegimeCarcdsfPcv(nomReg, nomRegOutput, data);
+            }
+            else if (nomReg.equals("carcdsf_pcv_avant_2006")) {
+                RegimesTab[j] = new RegimeCarcdsfPcvAvant2006(nomReg, nomRegOutput, data);
+            }
+            else if (nomReg.equals("ircantec")) {
+                RegimesTab[j] = new RegimeIrcantec(nomReg, nomRegOutput, data);
+            }
+            else {
+                System.out.println("Nom de régime invalide!");
+            }
+
+            j++;
+        }
+        return RegimesTab;
+    }
+    
     //méthode pour obtenir une date à partir d'un string type jj/mm/aaaa
     public static LocalDate dateFromString(String dateString) {
         String[] dateTab = dateString.split("/");
@@ -156,45 +196,6 @@ public class Tools {
         }
     }
 
-    //méthode pour créer le tableau des régimes à calculer MAJ à chaque nouveau régime programmé
-    public static Regime[] CreateRegimesTab (int length, Data data ) throws Exception {
-        Regime[] RegimesTab = new Regime[length];
-        int j = 0;
-        for (int i = 0; i < RegimesTab.length; i++) {
-            String nomReg = data.GetCumulDroitsTab()[0][i + 1];  
-            String nomRegOutput = data.GetCumulDroitsTab()[1][i + 1];     
-            if (nomReg.equals("rci")) {
-                RegimesTab[j] = new RegimeRCI(nomReg, nomRegOutput, data);
-            }
-            else if (nomReg.equals("agirc_arrco")) {
-                RegimesTab[j] = new RegimeAgircArrco(nomReg, nomRegOutput, data);
-            }
-            else if (nomReg.equals("regime_general")) {
-                RegimesTab[j] = new RegimeRG(nomReg, nomRegOutput, data);
-            }
-            else if (nomReg.equals("cnavpl")) {
-                RegimesTab[j] = new RegimeCnavpl(nomReg, nomRegOutput, data);
-            }
-            else if (nomReg.equals("carcdsf_rc")) {
-                RegimesTab[j] = new RegimeCarcdsfRc(nomReg, nomRegOutput, data);
-            }
-            else if (nomReg.equals("carcdsf_pcv")) {
-                RegimesTab[j] = new RegimeCarcdsfPcv(nomReg, nomRegOutput, data);
-            }
-            else if (nomReg.equals("carcdsf_pcv_avant_2006")) {
-                RegimesTab[j] = new RegimeCarcdsfPcvAvant2006(nomReg, nomRegOutput, data);
-            }
-            else if (nomReg.equals("ircantec")) {
-                RegimesTab[j] = new RegimeIrcantec(nomReg, nomRegOutput, data);
-            }
-            else {
-                System.out.println("Nom de régime invalide!");
-            }
-
-            j++;
-        }
-        return RegimesTab;
-    }
 
     //méthode pour décaler une date de départ au 1er jour du trim civil suivant
     public static DateDepart DecalerTrimCivil (DateDepart dateDepInit, Individu individu, String[][] AnnualDataTab ) throws Exception {
@@ -228,6 +229,22 @@ public class Tools {
         } catch (NumberFormatException e) {
             System.out.println("donnee paramètre régime incorrecte: " + e.getMessage());
         }
+        return result;
+    }
+
+    //méthode pour renvoyer le cumul d'une colonne (trim) dans le tableau AnnualDataTab
+    public static int CumulTrimAnnualData (DateDepart dateDep, Data data, int indCol) {
+        int anneeDep = dateDep.GetDateDep().getYear();
+        int moisDep = dateDep.GetDateDep().getMonthValue();    
+        int cumulTrim = 0;
+        int i = 2; // en-tetes de colonne en 0 et 1
+        while(data.GetAnnualDataTab()[i][indCol] != null && Integer.parseInt(data.GetAnnualDataTab()[i][0]) < anneeDep) {
+            cumulTrim = cumulTrim + Integer.parseInt(data.GetAnnualDataTab()[i][indCol]);
+            i++;
+        }
+        int indLigneAnneeDep = i;
+        int trimAnneeDep = (moisDep - 1) * Integer.parseInt(data.GetAnnualDataTab()[indLigneAnneeDep][indCol]) / 12; 
+        int result = cumulTrim + trimAnneeDep;
         return result;
     }
     
@@ -295,7 +312,6 @@ public class Tools {
             }    
         }
         return anneeRachat;
-        
     }
 
 }

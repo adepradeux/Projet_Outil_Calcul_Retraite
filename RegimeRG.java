@@ -8,7 +8,7 @@ public class RegimeRG extends Regime {
 
      //Méthode pour obtenir cumul de trimestres validés RG à la date donnée
      @Override
-     public float calculCumulPointsTrim(Individu individu, String[][] CumulDroitsTab, DateDepart dateDep) throws Exception {
+     public float calculCumulPointsTrim(Individu individu, Data data, DateDepart dateDep) throws Exception {
          float result;
          try {
             //calcul trim pour enfants
@@ -25,24 +25,13 @@ public class RegimeRG extends Regime {
                 trimEnfants = individu.getTrimEnfantsSpecifique();
             }
             
-            //calcul cumul+trim projetés
-            int anneeDep = dateDep.GetDateDep().getYear();
-            int moisDep = dateDep.GetDateDep().getMonthValue();
-            //on cherche l'indice de la colonne correspondant au regime  
-            int indCol = Tools.TrouverIndiceColonne(CumulDroitsTab, this.GetNom());
-            int cumulTrimInit = Integer.parseInt(CumulDroitsTab[2][indCol]) - Integer.parseInt(CumulDroitsTab[3][indCol]);
-            int anneeCumul = Tools.dateFromString(CumulDroitsTab[4][indCol]).getYear();
-            int cumulTrimProjetes = 0;
-            int i = 5; //en 5 -> début projection des points
-            while(CumulDroitsTab[i][indCol] != null && Integer.parseInt(CumulDroitsTab[i][0]) < anneeDep) {
-                if (Integer.parseInt(CumulDroitsTab[i][0]) > anneeCumul){
-                    cumulTrimProjetes = cumulTrimProjetes + Integer.parseInt(CumulDroitsTab[i][indCol]);
-                }
-                i++;
-            }
-            int indLigneAnneeDep = i;
-            int trimAnneeDep = (moisDep - 1) * Integer.parseInt(CumulDroitsTab[indLigneAnneeDep][indCol]) / 12;  
-            result = cumulTrimInit + trimEnfants + cumulTrimProjetes + trimAnneeDep;
+            //calcul du cumul des trimestres validés du début de la carrière à l'année de départ
+            int cumulTrim = Tools.CumulTrimAnnualData(dateDep, data, 3);
+           
+            //calcul du cumul des trimestres équivalents (= trim qui sont comptés pour le calcul du taux mais pas en tant que trim validés dans la formule)
+            int cumulTrimEquiv = Tools.CumulTrimAnnualData(dateDep, data, 5);
+
+            result = cumulTrim - cumulTrimEquiv + trimEnfants;
             
          } catch (Exception e) {
              throw new Exception("donnee cumul droits régime incorrecte: " + e.getMessage()) ;
@@ -86,7 +75,7 @@ public class RegimeRG extends Regime {
     @Override
     public int calculAnnuelBrut (Individu individu, DateDepart dateDep, Data data) throws Exception {
         float sam = calculSam(dateDep, data);
-        float montant = sam * Math.min(individu.getTrimRequis(), calculCumulPointsTrim(individu, data.GetCumulDroitsTab(), dateDep)) / individu.getTrimRequis()
+        float montant = sam * Math.min(individu.getTrimRequis(), calculCumulPointsTrim(individu, data, dateDep)) / individu.getTrimRequis()
         * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) * (1 + this.calculMajoEnfants(individu));
         int result = Math.round(montant);
         return result;

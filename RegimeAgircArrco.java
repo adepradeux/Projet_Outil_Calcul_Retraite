@@ -33,7 +33,7 @@ public class RegimeAgircArrco extends RegimePoints {
          float seuilMontant = 0;
          float montant = 0;
          try {
-             cumulPoints = calculCumulPointsTrim(individu, data.GetCumulDroitsTab(), dateDep);
+             cumulPoints = calculCumulPointsTrim(individu, data, dateDep);
              float ValPt = TrouverValeurPtRegime(data.GetInstPassPointsRegimesTab(), dateDep);
              seuilMontant = this.GetSeuilPointCapUnique() * ValPt;  //montant de la pension pour 100 points
              montant = ValPt * cumulPoints * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) + montantMajoEnfants(individu, dateDep, data);  //montant de la pension
@@ -51,7 +51,7 @@ public class RegimeAgircArrco extends RegimePoints {
     public int calculAnnuelBrut (Individu individu, DateDepart dateDep, Data data) throws Exception {
         int result = 0;
         float ValPt = TrouverValeurPtRegime(data.GetInstPassPointsRegimesTab(), dateDep);
-        float montant = ValPt * calculCumulPointsTrim(individu, data.GetCumulDroitsTab(), dateDep) * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) + montantMajoEnfants(individu, dateDep, data);
+        float montant = ValPt * calculCumulPointsTrim(individu, data, dateDep) * this.calculTaux(dateDep) * (1 + this.calculSurcote(dateDep)) + montantMajoEnfants(individu, dateDep, data);
         if (estVersementUnique(individu, data, dateDep)) {
             // versement unique = montant calculé * coeff spécifique Versement Unique
             String ageDepAnnee = String.valueOf(dateDep.GetAgeDep().ageAnnee); //ex : si age de 63 ans et 5 mois, ageDepAnnee = 63
@@ -71,7 +71,7 @@ public class RegimeAgircArrco extends RegimePoints {
         //calcul des points après 2012 pour calcul majo
         int indCol = Tools.TrouverIndiceColonne(data.GetCumulDroitsTab(), this.GetNom());
         float pointsAvant2012 = Float.parseFloat(data.GetCumulDroitsTab()[3][indCol]);
-        float pointsTotal = this.calculCumulPointsTrim(individu, data.GetCumulDroitsTab(), dateDep);
+        float pointsTotal = this.calculCumulPointsTrim(individu, data, dateDep);
         float pointsMajoEnfant = pointsTotal - pointsAvant2012;
         //calcul du montant de la majo sur les points après 2012
         float ValPt = TrouverValeurPtRegime(data.GetInstPassPointsRegimesTab(), dateDep);

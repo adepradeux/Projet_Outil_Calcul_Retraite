@@ -103,7 +103,7 @@ public class CalculRetraite {
                     String affichageVersementUnique = "Versement net unique de ";
                     Resultat[k][0] = String.valueOf(DateDepartCalcul.GetDateDep()); 
                     Resultat[k][1] = RegimesTab[j].GetNomOutput();
-                    Resultat[k][2] = String.valueOf(RegimesTab[j].calculCumulPointsTrim(individu, CumulDroitsTab, DateDepartCalcul));
+                    Resultat[k][2] = String.valueOf(RegimesTab[j].calculCumulPointsTrim(individu, data, DateDepartCalcul));
                     Resultat[k][3] = String.valueOf(RegimesTab[j].calculTaux(DateDepartCalcul));
                     Resultat[k][4] = String.valueOf(RegimesTab[j].calculSurcote(DateDepartCalcul));
                     Resultat[k][5] = String.valueOf(RegimesTab[j].calculSam(DateDepartTab[i], data));
@@ -117,7 +117,7 @@ public class CalculRetraite {
                 else {
                     Resultat[k][0] = String.valueOf(DateDepartCalcul.GetDateDep()); 
                     Resultat[k][1] = RegimesTab[j].GetNomOutput();
-                    Resultat[k][2] = String.valueOf(RegimesTab[j].calculCumulPointsTrim(individu, CumulDroitsTab, DateDepartCalcul));
+                    Resultat[k][2] = String.valueOf(RegimesTab[j].calculCumulPointsTrim(individu, data, DateDepartCalcul));
                     Resultat[k][3] = String.valueOf(RegimesTab[j].calculTaux(DateDepartCalcul));
                     Resultat[k][4] = String.valueOf(RegimesTab[j].calculSurcote(DateDepartCalcul));
                     Resultat[k][5] = String.valueOf(RegimesTab[j].calculSam(DateDepartTab[i], data));
@@ -137,7 +137,6 @@ public class CalculRetraite {
         CsvFileHelper.writeData("C:\\Users\\audre\\Desktop\\Retraite\\Projet_Outil_Calcul_Retraite\\Output\\resultatsTest.csv", headTabResult, Resultat);
         
         //TODO sortir un fichier CSV avec les salaires revalorisés 
-        //TODO finir test 2
         
        
     }
