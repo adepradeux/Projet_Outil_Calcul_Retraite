@@ -69,7 +69,8 @@ public class CalculRetraite {
             LocalDate dateDep = Tools.dateFromString(DateRetraiteTab[i+1][1]);
             int trimRachat = Integer.parseInt(DateRetraiteTab[i+1][3]);
             Boolean retraiteProg = Integer.parseInt(DateRetraiteTab[i+1][4]) == 1;
-            DateDepartTab[i] = new DateDepart(dateDep, trimRachat, retraiteProg, individu, AnnualDataTab);
+            String nomDate = DateRetraiteTab[i+1][0];
+            DateDepartTab[i] = new DateDepart(nomDate, dateDep, trimRachat, retraiteProg, individu, AnnualDataTab);
         }
         
         //on crée un tableau d'objet de classe Regime avec tous les régimes à calculer à partir de CumulDroitsTab

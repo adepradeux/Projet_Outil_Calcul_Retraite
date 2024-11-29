@@ -6,7 +6,7 @@ public class RegimeRG extends Regime {
         super(nom, nomOutput, data);
     }
 
-     //Méthode pour obtenir cumul de trimestres RG à la date donnée
+     //Méthode pour obtenir cumul de trimestres validés RG à la date donnée
      @Override
      public float calculCumulPointsTrim(Individu individu, String[][] CumulDroitsTab, DateDepart dateDep) throws Exception {
          float result;
@@ -93,9 +93,10 @@ public class RegimeRG extends Regime {
     }
 
     @Override
+    //calcul du Salaire Annuel Moyen (SAM)
     public float calculSam (DateDepart dateDep, Data data) throws Exception {
         
-        Salaire tabSalaireRevalo[] = CreerTabSalaireRevalo(dateDep, data.GetInstPassPointsRegimesTab(), data.GetAnnualDataTab(), data.GetInstCoeffRevaloTab());
+        Salaire tabSalaireRevalo[] = CreerTabSalaireRevalo(dateDep, data);
         ComparateurSalaireRevalo salaireComparator = new ComparateurSalaireRevalo();
         Arrays.sort(tabSalaireRevalo, salaireComparator);
         int nbSalaire = 0;
@@ -115,43 +116,47 @@ public class RegimeRG extends Regime {
     }
 
     //Méthode pour créer un tableau d'élément de classe Salaire à partir de AnnualDataTab
-    public Salaire[] CreerTabSalaireRevalo (DateDepart dateDep, String[][] InstPassPointsRegimesTab, String[][] AnnualDataTab, String[][] InstCoeffRevaloTab) throws Exception {
+    public Salaire[] CreerTabSalaireRevalo (DateDepart dateDep, Data data) throws Exception {
         //trouver le nombre de lignes de salaire
         int nbLigne = 0;
-        for (int i = 1; i < AnnualDataTab.length; i++) {
-            if (AnnualDataTab[i][0] == null) break;
+        for (int i = 2; i < data.GetAnnualDataTab().length; i++) { 
+            if (data.GetAnnualDataTab()[i][0] == null) break;
             nbLigne = nbLigne + 1;
         }
-       
         Salaire[] tabSalaireRevalo = new Salaire[nbLigne];
         for (int i = 0; i < tabSalaireRevalo.length; i++) {
-            if (AnnualDataTab[i + 1][0] == null) break;
+            if (data.GetAnnualDataTab()[i + 2][0] == null) break;   
             //calcul du salaire revalo 
             float salaireRevalo;
-            int annee = Integer.parseInt(AnnualDataTab[i + 1][0]);
-            float salaire = Float.parseFloat(AnnualDataTab[i + 1][4]);
-                //si l'année comporte 0 trimestres -> salaire non pris en compte donc on le met à 0
-            if (Integer.parseInt(AnnualDataTab[i + 1][2]) == 0) {
+            int annee = Integer.parseInt(data.GetAnnualDataTab()[i + 2][0]); 
+            float salaire = Float.parseFloat(data.GetAnnualDataTab()[i + 2][6]);  
+      
+            //si l'année comporte un rachat de trimestres -> salaire non pris en compte donc on le met à 0
+            if (Tools.EstAnneeRachat(dateDep, annee, data)) { 
                 salaireRevalo = 0;
-            }    
+            }
             else {
-                int indAnneeRevalo = Tools.TrouverIndiceLigne(InstCoeffRevaloTab, String.valueOf(AnnualDataTab[i + 1][0]));
-                int indColRevalo = Tools.TrouverIndiceColonneRevalo(InstCoeffRevaloTab, dateDep.GetDateDep());  
-                float coeffRevalo = Float.parseFloat(InstCoeffRevaloTab[indAnneeRevalo][indColRevalo]);  
-                int indAnneePass = Tools.TrouverIndiceLigne(InstPassPointsRegimesTab, String.valueOf(AnnualDataTab[i + 1][0]));
-                float pass = Float.parseFloat(InstPassPointsRegimesTab[indAnneePass][1]);
-                //si année >= 2005 plafond au pass
-                if (annee < 2005) {
-                    salaireRevalo = salaire * coeffRevalo;
-                }
+                //si l'année comporte 0 trimestres -> salaire non pris en compte donc on le met à 0
+                if (Integer.parseInt(data.GetAnnualDataTab()[i + 2][4]) == 0) {   
+                    salaireRevalo = 0;
+                }    
                 else {
-                    salaireRevalo = Math.round(Math.min(pass, salaire) * coeffRevalo * 100) / (float)100;  
+                    int indAnneeRevalo = Tools.TrouverIndiceLigne(data.GetInstCoeffRevaloTab(), String.valueOf(data.GetAnnualDataTab()[i + 2][0]));  
+                    int indColRevalo = Tools.TrouverIndiceColonneRevalo(data.GetInstCoeffRevaloTab(), dateDep.GetDateDep());  
+                    float coeffRevalo = Float.parseFloat(data.GetInstCoeffRevaloTab()[indAnneeRevalo][indColRevalo]);  
+                    int indAnneePass = Tools.TrouverIndiceLigne(data.GetInstPassPointsRegimesTab(), String.valueOf(data.GetAnnualDataTab()[i + 2][0]));  
+                    float pass = Float.parseFloat(data.GetInstPassPointsRegimesTab()[indAnneePass][1]);
+                    //si année >= 2005 plafond au pass
+                    if (annee < 2005) {
+                        salaireRevalo = salaire * coeffRevalo;
+                    }
+                    else {
+                        salaireRevalo = Math.round(Math.min(pass, salaire) * coeffRevalo * 100) / (float)100;  
+                    }
                 }
             }
             //création d'une instance de la classe Salaire
             tabSalaireRevalo[i] = new Salaire(annee, salaire, salaireRevalo);
-            
-            
         } 
         return tabSalaireRevalo;
     

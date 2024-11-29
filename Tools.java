@@ -207,11 +207,11 @@ public class Tools {
         else {
             if ((moisDep == 2) || (moisDep == 5) || (moisDep == 8) || (moisDep == 11)) {
                 LocalDate dateNew = dateDepInit.GetDateDep().plusMonths(2);
-                dateDepNew = new DateDepart(dateNew, dateDepInit.GetTrimRachat(), dateDepInit.GetRetraiteProg(), individu, AnnualDataTab);
+                dateDepNew = new DateDepart("", dateNew, dateDepInit.GetTrimRachat(), dateDepInit.GetRetraiteProg(), individu, AnnualDataTab);
             }
             else {
                 LocalDate dateNew = dateDepInit.GetDateDep().plusMonths(1);
-                dateDepNew = new DateDepart(dateNew, dateDepInit.GetTrimRachat(), dateDepInit.GetRetraiteProg(), individu, AnnualDataTab);
+                dateDepNew = new DateDepart("", dateNew, dateDepInit.GetTrimRachat(), dateDepInit.GetRetraiteProg(), individu, AnnualDataTab);
             }
         }
        
@@ -258,7 +258,7 @@ public class Tools {
         int moisDate1 = date1.getMonthValue();
         int anneeDate2 = date2.getYear();
         int moisDate2 = date2.getMonthValue();
-        for (int i = 1; i < AnnualDataTab.length; i++) {
+        for (int i = 2; i < AnnualDataTab.length; i++) {  
             if (AnnualDataTab[i][0] == null) break;
             if (Integer.parseInt(AnnualDataTab[i][0]) == anneeDate1) {
                 nbTrimSurcoteMax = nbTrimSurcoteMax + (int)Math.floor(Float.parseFloat(AnnualDataTab[i][2]) / (float)12 * (12 - moisDate1 + 1));
@@ -276,6 +276,26 @@ public class Tools {
 
         }
         return nbTrimSurcoteMax;
+    }
+
+    //méthode pour vérifier si une année fait partie des années sur lesquelles il y a un trimestre racheté
+    public static Boolean EstAnneeRachat(DateDepart dateDep, int annee, Data data) {
+        Boolean anneeRachat = false;
+        String nomDate = dateDep.GetNomDate();
+        int indLigne = TrouverIndiceLigne(data.GetDateRetraiteTab(), nomDate);
+        //si le nombre de trimestre rachetés n'est pas nul
+        if (Integer.parseInt(data.GetDateRetraiteTab()[indLigne][3]) > 0) {
+            //on fait une boucle sur la ligne de date de départ pour vérifier si les années rachetés indiquées correspondent à l'année en cours
+            for (int i = 4; i < 8; i++) {  
+                if (data.GetDateRetraiteTab()[indLigne][i] == null) break;
+                if (Integer.parseInt(data.GetDateRetraiteTab()[indLigne][i]) == annee) {
+                    anneeRachat = true;
+                }
+    
+            }    
+        }
+        return anneeRachat;
+        
     }
 
 }

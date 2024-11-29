@@ -1,6 +1,7 @@
 import java.time.LocalDate;
 
 public final class DateDepart {
+    private final String nomDate;
     private final LocalDate dateDep;
     //Boolean carriereLongue;
     private final int trimRachat;
@@ -16,7 +17,8 @@ public final class DateDepart {
     private final int trimSurcoteParent;
 
     //CONSTRUCTEUR
-    DateDepart(LocalDate dateDep, int trimRachat, Boolean retraiteProg, Individu individu, String[][] AnnualDataTab) throws Exception{
+    DateDepart(String nomDate, LocalDate dateDep, int trimRachat, Boolean retraiteProg, Individu individu, String[][] AnnualDataTab) throws Exception{
+        this.nomDate = nomDate;
         this.dateDep = dateDep;
         this.trimRachat = trimRachat;
         this.retraiteProg = retraiteProg;
@@ -46,6 +48,19 @@ public final class DateDepart {
             int anneeDep = dateDep.getYear();
             int moisDep = dateDep.getMonthValue();
             int cumulTrimCarriere = 0;
+
+            //TEST new annual data tab
+            int i = 2; //en 0 -> en-tetes du tableau
+            
+            while(AnnualDataTab[i][0] != null && Integer.parseInt(AnnualDataTab[i][0]) < anneeDep) {
+                cumulTrimCarriere = cumulTrimCarriere + Integer.parseInt(AnnualDataTab[i][1]);
+                i++;
+            } 
+            int indLigneAnneeDep = i;
+            //ajout des trimestres de l'année de la date de départ
+            int trimAnneeDep = (moisDep - 1) * Integer.parseInt(AnnualDataTab[indLigneAnneeDep][1]) / 12;   
+
+            /* /////// INIT
             int i = 1; //en 0 -> en-tetes du tableau
             
             while(AnnualDataTab[i][0] != null && Integer.parseInt(AnnualDataTab[i][0]) < anneeDep) {
@@ -54,7 +69,7 @@ public final class DateDepart {
             } 
             int indLigneAnneeDep = i;
             //ajout des trimestres de l'année de la date de départ
-            int trimAnneeDep = (moisDep - 1) * Integer.parseInt(AnnualDataTab[indLigneAnneeDep][1]) / 12;            
+            int trimAnneeDep = (moisDep - 1) * Integer.parseInt(AnnualDataTab[indLigneAnneeDep][1]) / 12;   */  /////////       
             result = cumulTrimCarriere + trimAnneeDep + trimAjout;
             
         } catch (Exception e) {
@@ -96,7 +111,8 @@ public final class DateDepart {
         return result;
     }
 
-    private int CalculTrimSurcote(LocalDate dateDep, Individu individu, String[][] AnnualDataTab) {
+    //calcul du nombre de trimestres de surcote après la date d'acquisition du nombre de trim requis
+    private int CalculTrimSurcote(LocalDate dateDep, Individu individu, String[][] AnnualDataTab) throws Exception {
         int nbTrimSurcote;
         //si la date de départ est avant l'age legal (cas carrière longue) -> pas de surcote
         if(this.dateDep.compareTo(individu.getDateAgeLegal()) <= 0){
@@ -104,29 +120,7 @@ public final class DateDepart {
         }
         else {
             //calcul nb trim surcote max en fonction des trimestres cotisés entre age légal et date depart
-            //TODO utiliser la fonction DiffTrimCotises dans Tools
-            int nbTrimSurcoteMax = 0;
-            int anneeAgeLegal = individu.getDateAgeLegal().getYear();
-            int moisAgeLegal = individu.getDateAgeLegal().getMonthValue();
-            int anneeDep = dateDep.getYear();
-            int moisDep = dateDep.getMonthValue();
-            for (int i = 1; i < AnnualDataTab.length; i++) {
-                if (AnnualDataTab[i][0] == null) break;
-                if (Integer.parseInt(AnnualDataTab[i][0]) == anneeAgeLegal) {
-                    nbTrimSurcoteMax = nbTrimSurcoteMax + (int)Math.floor(Float.parseFloat(AnnualDataTab[i][2]) / (float)12 * (12 - moisAgeLegal + 1));
-                }
-                else {
-                    if (Integer.parseInt(AnnualDataTab[i][0]) == anneeDep) {
-                        nbTrimSurcoteMax = nbTrimSurcoteMax + (int)Math.floor(Float.parseFloat((AnnualDataTab[i][2])) / (float)12 * moisDep);
-                    }
-                    else {
-                        if (Integer.parseInt(AnnualDataTab[i][0]) > anneeAgeLegal && Integer.parseInt(AnnualDataTab[i][0]) < anneeDep) {
-                            nbTrimSurcoteMax = nbTrimSurcoteMax + Integer.parseInt(AnnualDataTab[i][2]);
-                        }
-                    }
-                }
-
-            }
+            int nbTrimSurcoteMax = Tools.DiffTrimCotises(individu.getDateAgeLegal(), dateDep, AnnualDataTab);
             nbTrimSurcote = Math.min(nbTrimSurcoteMax, Math.max(0, this.cumulTrim - individu.getTrimRequis()));
         }
         return nbTrimSurcote;
@@ -134,18 +128,18 @@ public final class DateDepart {
 
     //calcul des trimestres de surcote pour CARCDSF RC avec age taux plein à 67 ans, diminué d'une année par enfant eus
     //surcote uniquement si poursuite d'activité libérale
-    //TODO par prudence, ne déclencher la surcote qu'après 67 ans meme si le taux plein est avant pour les mères avec enfant
+    //par prudence et interpretation stricte des statuts, déclenchement de la surcote qu'après 67 ans meme si le taux plein est avant 
     private int CalculTrimSurcoteCarcdsfRc(Individu individu) { 
         //determination de l'age taux plein
         Age ageTxPlein;
         int result = 0;
         if (!individu.getSalarie()) {
-            if (individu.getSexe().equals("F")) {
+            /*if (individu.getSexe().equals("F")) {
                 ageTxPlein = new Age(individu.getAgeTxPleinAuto().ageAnnee - individu.getNbEnfants(), individu.getAgeTxPleinAuto().ageMois);
             }
-            else {
+            else {*/
                 ageTxPlein = individu.getAgeTxPleinAuto();
-            }
+            //}
             result = Math.max(0, Tools.AgeDiffTrimInf(ageTxPlein, this.ageDep));
         }
         return result;
@@ -167,11 +161,15 @@ public final class DateDepart {
             }
         }
         int result = Math.min(4, trimSurcote);
-        System.out.println("trim surcote parentale " + trimSurcote);
-        return result; //TODO calcul surcote parentale à finir
+        return result; 
     }
 
     //GETTER
+    
+    public String GetNomDate() {
+        return nomDate;
+    }
+
     public LocalDate GetDateDep() {
         return dateDep;
     }
