@@ -70,20 +70,35 @@ public final class DateDepart {
 
        
     //calcul des trimestres manquants pour régimes avec calcul decote selon le cumul de trimestres
+    // TEST prise en compte invalidité -> taux 100% dès l'age légal quel que soit le nombre de trim
     private int CalculTrimManquant(Individu individu) {
         //calcul trim manquant par rapport au trim requis
         int trimManquantRequis = Math.max(0, individu.getTrimRequis() - this.cumulTrim);  
        
         //calcul trim manquant par rapport à l'age taux plein auto
         int trimManquantAuto = Math.max(0, Tools.AgeDiffTrim(this.ageDep, individu.getAgeTxPleinAuto()));
-        int result = Math.min(trimManquantRequis, trimManquantAuto);
+
+        int result = 0;
+        if (individu.getInaptitude()) {
+            result = 0;
+        }
+        else {
+            result = Math.min(trimManquantRequis, trimManquantAuto);
+        }
         return result;
     }
 
     //calcul des trimestres manquants pour régimes avec calcul decote selon age avec taux plein à l'âge taux plein auto
     private int CalculTrimManquantAgeAuto(Individu individu) {
-        int trimManquantAuto = Math.max(0, Tools.AgeDiffTrim(this.ageDep, individu.getAgeTxPleinAuto()));
-        return trimManquantAuto;
+        int result = 0;
+        if (individu.getInaptitude()) {
+            result = 0;
+        }
+        else {
+            result = Math.max(0, Tools.AgeDiffTrim(this.ageDep, individu.getAgeTxPleinAuto()));
+        }
+        
+        return result;
     }
 
     //calcul des trimestres manquants pour CARCDSF RC avec age taux plein à 67 ans, diminué d'une année par enfant eus
@@ -96,7 +111,14 @@ public final class DateDepart {
         else {
             ageTxPlein = individu.getAgeTxPleinAuto();
         }
-        int result = Math.max(0, Tools.AgeDiffTrim(this.ageDep, ageTxPlein));
+        int result = 0;
+        if (individu.getInaptitude()) {
+            result = 0;
+        }
+        else {
+            result = Math.max(0, Tools.AgeDiffTrim(this.ageDep, ageTxPlein));
+        }
+        
         return result;
     }
 
