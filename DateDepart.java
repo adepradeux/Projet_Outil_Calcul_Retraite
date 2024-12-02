@@ -70,7 +70,6 @@ public final class DateDepart {
 
        
     //calcul des trimestres manquants pour régimes avec calcul decote selon le cumul de trimestres
-    // TEST prise en compte invalidité -> taux 100% dès l'age légal quel que soit le nombre de trim
     private int CalculTrimManquant(Individu individu) {
         //calcul trim manquant par rapport au trim requis
         int trimManquantRequis = Math.max(0, individu.getTrimRequis() - this.cumulTrim);  

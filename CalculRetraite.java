@@ -86,9 +86,11 @@ public class CalculRetraite {
         Regime[] RegimesTab = Tools.CreateRegimesTab(nbReg, data);
 
         //pour chaque date de DateDepartTab : parcourir le tableau des régimes pour calcul des montants/nbPts/taux/surcote pour chaque regime
-        String [][] Resultat = new String[nbReg * nbDate][15];
+        String [][] Resultat = new String[(nbReg + 3) * nbDate][11];
         int k = 0; //indice ligne
         for (int i = 0; i < nbDate; i++) {
+            int totalAnnuelNet = 0;
+            int totalMensuelNet = 0;
             for (int j = 0; j < nbReg; j++) {
                 //on décale la date de depart au 1er jour trim civil suivant si le régime impose un départ au 1er jour du trimestre civil
                 DateDepart DateDepartCalcul;
@@ -128,15 +130,66 @@ public class CalculRetraite {
                     Resultat[k][10] = String.valueOf(RegimesTab[j].calculAnnuelNet(individu, DateDepartCalcul, data));
                 }
                 // TEST System.out.println("date " + DateDepartTab[i].GetDateDep() + " | " + RegimesTab[j].nom + " | retour sam " + Resultat[k][5]);
+                totalAnnuelNet = totalAnnuelNet + RegimesTab[j].calculAnnuelNet(individu, DateDepartCalcul, data);
+                totalMensuelNet = totalAnnuelNet / (int)12;
                 k++;
             }
+            //LIGNE avec le total annuel
+            Resultat[k][0] = "";
+            Resultat[k][1] = "";
+            Resultat[k][2] = "";
+            Resultat[k][3] = "";
+            Resultat[k][4] = "";
+            Resultat[k][5] ="";
+            Resultat[k][6] = "";
+            Resultat[k][7] = "";
+            Resultat[k][8] = "";
+            Resultat[k][9] = "TOTAL ";
+            Resultat[k][10] = String.valueOf(totalAnnuelNet);
+            k++;
+            //LIGNE avec le total mensuel
+            Resultat[k][0] = "";
+            Resultat[k][1] = "";
+            Resultat[k][2] = "";
+            Resultat[k][3] = "";
+            Resultat[k][4] = "";
+            Resultat[k][5] ="";
+            Resultat[k][6] = "";
+            Resultat[k][7] = "";
+            Resultat[k][8] = "";
+            Resultat[k][9] = "Mensuel Net ";
+            Resultat[k][10] = String.valueOf(totalMensuelNet);
+            k++;
+            //LIGNE VIDE
+            Resultat[k][0] = "";
+            Resultat[k][1] = "";
+            Resultat[k][2] = "";
+            Resultat[k][3] = "";
+            Resultat[k][4] = "";
+            Resultat[k][5] ="";
+            Resultat[k][6] = "";
+            Resultat[k][7] = "";
+            Resultat[k][8] = "";
+            Resultat[k][9] = "";
+            Resultat[k][10] = "";
+            k++;
         }
         
         //tableau avec les en-tetes de colonne du tableau de résultat
         String[] headTabResult = {"Date Départ", "Régime", "Trim/Points", "Taux", "Surcote", "SAM", "Valeur Point", "Majoration familiale",  "Annuel Brut", "Prélèvements", "Annuel Net"}; 
         CsvFileHelper.writeData("C:\\Users\\audre\\Desktop\\Retraite\\Projet_Outil_Calcul_Retraite\\Output\\resultatsTest.csv", headTabResult, Resultat);
         
-        //TODO sortir un fichier CSV avec les salaires revalorisés 
+               
+        //création du tableau pour la première date de départ
+        String [][] ResultatSalaires = Tools.CreerTabSalaireOuput(DateDepartTab[0], data, RegimesTab);
+        
+        //tableau avec les en-tetes de colonne du tableau de salaires
+        String[] headTabResultSalaire = {"Année", "Salaire €", "Coefficient de revalorisation","Salaire revalorisé pour SAM"}; 
+        CsvFileHelper.writeData("C:\\Users\\audre\\Desktop\\Retraite\\Projet_Outil_Calcul_Retraite\\Output\\resultatsSalaires.csv", headTabResultSalaire, ResultatSalaires);
+
+
+
+        //TODO retraite anticipée pour carrière longue
         
        
     }

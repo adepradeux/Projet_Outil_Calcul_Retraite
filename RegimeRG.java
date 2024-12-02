@@ -1,4 +1,5 @@
 import java.util.Arrays;
+import javax.tools.Tool;
 
 public class RegimeRG extends Regime {
     //CONSTRUCTEUR
@@ -85,7 +86,7 @@ public class RegimeRG extends Regime {
     //calcul du Salaire Annuel Moyen (SAM)
     public float calculSam (DateDepart dateDep, Data data) throws Exception {
         
-        Salaire tabSalaireRevalo[] = CreerTabSalaireRevalo(dateDep, data);
+        Salaire tabSalaireRevalo[] = Tools.CreerTabSalaireRevalo(dateDep, data);
         ComparateurSalaireRevalo salaireComparator = new ComparateurSalaireRevalo();
         Arrays.sort(tabSalaireRevalo, salaireComparator);
         int nbSalaire = 0;
@@ -105,7 +106,7 @@ public class RegimeRG extends Regime {
     }
 
     //Méthode pour créer un tableau d'élément de classe Salaire à partir de AnnualDataTab
-    public Salaire[] CreerTabSalaireRevalo (DateDepart dateDep, Data data) throws Exception {
+    /* TEST public Salaire[] CreerTabSalaireRevalo (DateDepart dateDep, Data data) throws Exception {
         //trouver le nombre de lignes de salaire
         int nbLigne = 0;
         for (int i = 2; i < data.GetAnnualDataTab().length; i++) { 
@@ -149,7 +150,7 @@ public class RegimeRG extends Regime {
         } 
         return tabSalaireRevalo;
     
-    }
+    }*/
 
     @Override
     public Boolean estVersementUnique (Individu individu, Data data, DateDepart dateDep) {
