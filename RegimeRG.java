@@ -1,5 +1,4 @@
 import java.util.Arrays;
-import javax.tools.Tool;
 
 public class RegimeRG extends Regime {
     //CONSTRUCTEUR
@@ -105,52 +104,6 @@ public class RegimeRG extends Regime {
         return result;
     }
 
-    //Méthode pour créer un tableau d'élément de classe Salaire à partir de AnnualDataTab
-    /* TEST public Salaire[] CreerTabSalaireRevalo (DateDepart dateDep, Data data) throws Exception {
-        //trouver le nombre de lignes de salaire
-        int nbLigne = 0;
-        for (int i = 2; i < data.GetAnnualDataTab().length; i++) { 
-            if (data.GetAnnualDataTab()[i][0] == null) break;
-            nbLigne = nbLigne + 1;
-        }
-        Salaire[] tabSalaireRevalo = new Salaire[nbLigne];
-        for (int i = 0; i < tabSalaireRevalo.length; i++) {
-            if (data.GetAnnualDataTab()[i + 2][0] == null) break;   
-            //calcul du salaire revalo 
-            float salaireRevalo;
-            int annee = Integer.parseInt(data.GetAnnualDataTab()[i + 2][0]); 
-            float salaire = Float.parseFloat(data.GetAnnualDataTab()[i + 2][6]);  
-      
-            //si l'année comporte un rachat de trimestres -> salaire non pris en compte donc on le met à 0
-            if (Tools.EstAnneeRachat(dateDep, annee, data)) { 
-                salaireRevalo = 0;
-            }
-            else {
-                //si l'année comporte 0 trimestres -> salaire non pris en compte donc on le met à 0
-                if (Integer.parseInt(data.GetAnnualDataTab()[i + 2][4]) == 0) {   
-                    salaireRevalo = 0;
-                }    
-                else {
-                    int indAnneeRevalo = Tools.TrouverIndiceLigne(data.GetInstCoeffRevaloTab(), String.valueOf(data.GetAnnualDataTab()[i + 2][0]));  
-                    int indColRevalo = Tools.TrouverIndiceColonneRevalo(data.GetInstCoeffRevaloTab(), dateDep.GetDateDep());  
-                    float coeffRevalo = Float.parseFloat(data.GetInstCoeffRevaloTab()[indAnneeRevalo][indColRevalo]);  
-                    int indAnneePass = Tools.TrouverIndiceLigne(data.GetInstPassPointsRegimesTab(), String.valueOf(data.GetAnnualDataTab()[i + 2][0]));  
-                    float pass = Float.parseFloat(data.GetInstPassPointsRegimesTab()[indAnneePass][1]);
-                    //si année >= 2005 plafond au pass
-                    if (annee < 2005) {
-                        salaireRevalo = salaire * coeffRevalo;
-                    }
-                    else {
-                        salaireRevalo = Math.round(Math.min(pass, salaire) * coeffRevalo * 100) / (float)100;  
-                    }
-                }
-            }
-            //création d'une instance de la classe Salaire
-            tabSalaireRevalo[i] = new Salaire(annee, salaire, salaireRevalo);
-        } 
-        return tabSalaireRevalo;
-    
-    }*/
 
     @Override
     public Boolean estVersementUnique (Individu individu, Data data, DateDepart dateDep) {

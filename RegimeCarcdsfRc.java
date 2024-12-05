@@ -14,8 +14,7 @@ public class RegimeCarcdsfRc extends RegimePoints {
         return result;
     }
 
-    //Méthode pour obtenir taux surcote en fonction de l'age de 67 ans ou moins pour les mères avec enfants -> à calculer à priori dans DateDepart
-    //ATTENTION surcote uniquement si poursuite activité libérale https://www.carcdsf.fr/retraite/a-quel-age-demander-ses-droits-56
+    //Méthode pour obtenir taux surcote en fonction de l'age de 67 ans ou moins pour les mères avec enfants 
     @Override
     public float calculSurcote (DateDepart dateDep) {
         float surcote = dateDep.GetTrimSurcoteCarcdsfRc() * this.GetTx_surcote_1();

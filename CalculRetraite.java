@@ -68,7 +68,7 @@ public class CalculRetraite {
         for (int i = 0; i < nbDate; i++) {
             LocalDate dateDep = Tools.dateFromString(DateRetraiteTab[i+1][1]);
             int trimRachat = Integer.parseInt(DateRetraiteTab[i+1][3]);
-            Boolean retraiteProg = Integer.parseInt(DateRetraiteTab[i+1][4]) == 1;
+            Boolean retraiteProg = Integer.parseInt(DateRetraiteTab[i+1][2]) == 1;
             String nomDate = DateRetraiteTab[i+1][0];
             DateDepartTab[i] = new DateDepart(nomDate, dateDep, trimRachat, retraiteProg, individu, AnnualDataTab);
         }
@@ -82,12 +82,14 @@ public class CalculRetraite {
         }
         System.out.println(" verif nb reg " + nbReg);
             //initialisation du tableau des regimes à calculer
-
         Regime[] RegimesTab = Tools.CreateRegimesTab(nbReg, data);
 
+        //REMPLISSAGE TABLEAUX POUR OUTPUT
         //pour chaque date de DateDepartTab : parcourir le tableau des régimes pour calcul des montants/nbPts/taux/surcote pour chaque regime
-        String [][] Resultat = new String[(nbReg + 3) * nbDate][11];
+        String [][] Resultat = new String[(nbReg + 3) * nbDate][11];  //initialisation du tableau de résultat
+        String [][] ResultatCumulGains = new String[12][nbDate + 1];    //initialisation du tableau des gains
         int k = 0; //indice ligne
+        int indCol = 1;  //indice colonne pour tableau des gains
         for (int i = 0; i < nbDate; i++) {
             int totalAnnuelNet = 0;
             int totalMensuelNet = 0;
@@ -109,7 +111,6 @@ public class CalculRetraite {
                     Resultat[k][3] = String.valueOf(RegimesTab[j].calculTaux(DateDepartCalcul));
                     Resultat[k][4] = String.valueOf(RegimesTab[j].calculSurcote(DateDepartCalcul));
                     Resultat[k][5] = String.valueOf(RegimesTab[j].calculSam(DateDepartTab[i], data));
-                    //Resultat[k][5] = String.valueOf(RegimesTab[j].calculSam(DateDepartTab[i], data));
                     Resultat[k][6] = String.valueOf(RegimesTab[j].TrouverValeurPtRegime(InstPassPointsRegimesTab, DateDepartCalcul));
                     Resultat[k][7] = String.valueOf(RegimesTab[j].calculMajoEnfants(individu));
                     Resultat[k][8] = "";
@@ -128,9 +129,9 @@ public class CalculRetraite {
                     Resultat[k][8] = String.valueOf(RegimesTab[j].calculAnnuelBrut(individu, DateDepartCalcul, data));
                     Resultat[k][9] = String.valueOf(RegimesTab[j].GetTx_plvt_sociaux());
                     Resultat[k][10] = String.valueOf(RegimesTab[j].calculAnnuelNet(individu, DateDepartCalcul, data));
+                    totalAnnuelNet = totalAnnuelNet + RegimesTab[j].calculAnnuelNet(individu, DateDepartCalcul, data);
                 }
-                // TEST System.out.println("date " + DateDepartTab[i].GetDateDep() + " | " + RegimesTab[j].nom + " | retour sam " + Resultat[k][5]);
-                totalAnnuelNet = totalAnnuelNet + RegimesTab[j].calculAnnuelNet(individu, DateDepartCalcul, data);
+                
                 totalMensuelNet = totalAnnuelNet / (int)12;
                 k++;
             }
@@ -173,19 +174,98 @@ public class CalculRetraite {
             Resultat[k][9] = "";
             Resultat[k][10] = "";
             k++;
+
+        
+            //REMPLISSAGE TABLEAU Cumuls des gains (en-tete dans la 1ere colonne)
+            
+                //détermination date avec rachat ou non
+            String affichageRachat;
+            if (DateDepartTab[i].GetTrimRachat() > 0) {
+                affichageRachat = "Avec rachat";
+            }
+            else {
+                affichageRachat = "Sans rachat";
+            }
+
+                //détermination date taux plein ou taux minoré
+            String affichageTaux;
+            if (DateDepartTab[i].GetTrimManquant() > 0) {
+                affichageTaux = "Taux minoré - cumul limité";
+            }
+            else {
+                affichageTaux = "TAUX PLEIN - cumul libre";
+            }
+
+
+                //calcul gain mensuel
+            int gainMensuel;
+            int gainMensuelCumul;
+            if (indCol == 1) {
+                gainMensuel = 0;
+            }
+            else {
+                gainMensuel = Math.round(totalMensuelNet - Float.parseFloat(ResultatCumulGains[4][indCol - 1]));
+            }
+                //calcul cumul gain mensuel
+            if (indCol == 1) {
+                gainMensuelCumul = 0;
+            }
+            else {
+                gainMensuelCumul = Math.round(totalMensuelNet - Float.parseFloat(ResultatCumulGains[4][1]));
+            }
+                //calcul gains cumulés
+            Age age65 = new Age(65, 0);
+            Age age70 = new Age(70, 0);
+            Age age75 = new Age(75, 0);
+            Age age80 = new Age(80, 0);
+            Age age85 = new Age(85, 0);
+            int gain65 = Math.max(0, age65.duree - DateDepartTab[i].GetAgeDep().duree) * totalMensuelNet ;
+            int gain70 = Math.max(0, age70.duree - DateDepartTab[i].GetAgeDep().duree) * totalMensuelNet ;
+            int gain75 = Math.max(0, age75.duree - DateDepartTab[i].GetAgeDep().duree) * totalMensuelNet ;
+            int gain80 = Math.max(0, age80.duree - DateDepartTab[i].GetAgeDep().duree) * totalMensuelNet ;
+            int gain85 = Math.max(0, age85.duree - DateDepartTab[i].GetAgeDep().duree) * totalMensuelNet ;
+
+            ResultatCumulGains[0][indCol] = affichageRachat;
+            ResultatCumulGains[1][indCol] = affichageTaux;
+            ResultatCumulGains[2][indCol] = String.valueOf(DateDepartTab[i].GetDateDep()); //ligne avec les dates de départ
+            ResultatCumulGains[3][indCol] = Tools.getStringOfAge(DateDepartTab[i].GetAgeDep()); //ligne avec l'age
+            ResultatCumulGains[4][indCol] = String.valueOf(totalMensuelNet);
+            ResultatCumulGains[5][indCol] = "'+".concat(String.valueOf(gainMensuel)).concat(" €");
+            ResultatCumulGains[6][indCol] = "'+".concat(String.valueOf(gainMensuelCumul)).concat(" €");
+            ResultatCumulGains[7][indCol] = String.valueOf(gain65).concat(" €");
+            ResultatCumulGains[8][indCol] = String.valueOf(gain70).concat(" €");
+            ResultatCumulGains[9][indCol] = String.valueOf(gain75).concat(" €");
+            ResultatCumulGains[10][indCol] = String.valueOf(gain80).concat(" €");
+            ResultatCumulGains[11][indCol] = String.valueOf(gain85).concat(" €");
+            indCol++;
+            
         }
         
-        //tableau avec les en-tetes de colonne du tableau de résultat
+        //OUTPUT Résultats avec les montants de retraite
         String[] headTabResult = {"Date Départ", "Régime", "Trim/Points", "Taux", "Surcote", "SAM", "Valeur Point", "Majoration familiale",  "Annuel Brut", "Prélèvements", "Annuel Net"}; 
         CsvFileHelper.writeData("C:\\Users\\audre\\Desktop\\Retraite\\Projet_Outil_Calcul_Retraite\\Output\\resultatsTest.csv", headTabResult, Resultat);
         
                
+        //OUTPUT salaires et salaires revalorisés année par année
         //création du tableau pour la première date de départ
         String [][] ResultatSalaires = Tools.CreerTabSalaireOuput(DateDepartTab[0], data, RegimesTab);
-        
-        //tableau avec les en-tetes de colonne du tableau de salaires
         String[] headTabResultSalaire = {"Année", "Salaire €", "Coefficient de revalorisation","Salaire revalorisé pour SAM"}; 
         CsvFileHelper.writeData("C:\\Users\\audre\\Desktop\\Retraite\\Projet_Outil_Calcul_Retraite\\Output\\resultatsSalaires.csv", headTabResultSalaire, ResultatSalaires);
+
+        //OUTPUT Recap montants et cumul des gains
+            //en-tete des lignes
+        ResultatCumulGains[2][0] = "Date Retraite";
+        ResultatCumulGains[3][0] = "Age";
+        ResultatCumulGains[4][0] = "Mensuel net";
+        ResultatCumulGains[5][0] = "Gain mensuel";
+        ResultatCumulGains[6][0] = "Cumul";
+        ResultatCumulGains[7][0] = "Cumul gains à 65 ans";
+        ResultatCumulGains[8][0] = "Cumul gains à 70 ans";
+        ResultatCumulGains[9][0] = "Cumul gains à 75 ans";
+        ResultatCumulGains[10][0] = "Cumul gains à 80 ans";
+        ResultatCumulGains[11][0] = "Cumul gains à 85 ans";
+        String[] headTabResultGains = {""}; 
+        CsvFileHelper.writeData("C:\\Users\\audre\\Desktop\\Retraite\\Projet_Outil_Calcul_Retraite\\Output\\resultatsTableauGains.csv", headTabResultGains, ResultatCumulGains);
 
 
 

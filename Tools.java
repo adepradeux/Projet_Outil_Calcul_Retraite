@@ -33,6 +33,12 @@ public class Tools {
             else if (nomReg.equals("ircantec")) {
                 RegimesTab[j] = new RegimeIrcantec(nomReg, nomRegOutput, data);
             }
+            else if (nomReg.equals("carmf_rc")) {
+                RegimesTab[j] = new RegimeCarmfRc(nomReg, nomRegOutput, data);
+            }
+            else if (nomReg.equals("carmf_asv")) {
+                RegimesTab[j] = new RegimeCarmfAsv(nomReg, nomRegOutput, data);
+            }
             else {
                 System.out.println("Nom de régime invalide!");
             }
@@ -50,6 +56,21 @@ public class Tools {
         Integer annee = Integer.valueOf(dateTab[2]);
         LocalDate date = LocalDate.of(annee, mois, jour);
         return date;
+    }
+
+    //méthode pour obtenir l'age sous la forme d'un string "xx ans et xx mois"
+    public static String getStringOfAge(Age age) {
+        String s1 = String.valueOf(age.ageAnnee);
+        String s2 = String.valueOf(age.ageMois);
+        String result;
+        if (age.ageMois == 0) {
+            result = s1.concat(" ans");
+        }
+        else {
+            result = s1.concat(" ans et ").concat(s2).concat(" mois");
+        }
+      
+        return result;
     }
 
     //méthode pour obtenir une date à partir d'une date de naissance et d'un age de la classe age
